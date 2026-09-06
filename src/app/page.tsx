@@ -1,103 +1,97 @@
-import Image from "next/image";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { incomes, expenses, bills } from "@/db/schema";
+import { currentMonth } from "@/lib/month";
+import { formatCurrency } from "@/lib/format";
+import { MonthSwitcher } from "@/components/MonthSwitcher";
+import { RemainingDonut } from "@/components/charts/RemainingDonut";
+import { CategoryAllocationChart } from "@/components/charts/CategoryAllocationChart";
+import { AccountsFlowChart } from "@/components/charts/AccountsFlowChart";
+import { GoalCard } from "@/components/GoalCard";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+const RESERVE_TYPE_EMERGENCIA = "Reserva de emergência";
+const RESERVE_TYPE_RENDA = "Aumentar renda";
+
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const sp = await searchParams;
+  const month = sp.month ?? currentMonth();
+
+  const [incomeRows, expenseRows, billRows, reserveRows, goalRows] = await Promise.all([
+    db.query.incomes.findMany({ where: eq(incomes.month, month) }),
+    db.query.expenses.findMany({ where: eq(expenses.month, month), with: { category: true } }),
+    db.query.bills.findMany({ where: eq(bills.month, month), with: { account: true } }),
+    db.query.reserves.findMany(),
+    db.query.goals.findMany(),
+  ]);
+
+  const totalIncome = incomeRows.reduce((s, r) => s + Number(r.amount), 0);
+  const totalExpenses = expenseRows.reduce((s, r) => s + Number(r.amount), 0);
+  const totalBills = billRows.reduce((s, b) => s + Number(b.actualAmount ?? b.plannedAmount), 0);
+  const totalSpent = totalExpenses + totalBills;
+
+  const categoryTotals = new Map<string, { name: string; value: number; color: string }>();
+  for (const e of expenseRows) {
+    const key = e.category.id;
+    const current = categoryTotals.get(key) ?? { name: e.category.name, value: 0, color: e.category.color };
+    current.value += Number(e.amount);
+    categoryTotals.set(key, current);
+  }
+  const categoryData = Array.from(categoryTotals.values()).sort((a, b) => b.value - a.value);
+
+  const accountsFlowData = billRows.map((b) => ({
+    name: b.account!.name,
+    planejado: Number(b.plannedAmount),
+    real: Number(b.actualAmount ?? 0),
+  }));
+
+  function goalCardProps(key: "reserva_emergencia" | "aumento_renda", reserveType: string) {
+    const goal = goalRows.find((g) => g.key === key);
+    const target = goal ? Number(goal.targetAmount) : 0;
+    const matching = reserveRows.filter((r) => r.type === reserveType);
+    const totalReserved = matching.reduce((s, r) => s + Number(r.amount), 0);
+    const reservedThisMonth = matching
+      .filter((r) => r.date.slice(0, 7) === month.slice(0, 7))
+      .reduce((s, r) => s + Number(r.amount), 0);
+    return { target, reservedThisMonth, totalReserved };
+  }
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="mx-auto max-w-6xl px-4 py-6">
+      <MonthSwitcher month={month} basePath="/" />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 text-center font-semibold">Restante para gastar</h2>
+          <RemainingDonut income={totalIncome} spent={totalSpent} />
+          <p className="mt-2 text-center text-xs text-black/50 dark:text-white/50">
+            Entradas {formatCurrency(totalIncome)} − Gastos e contas {formatCurrency(totalSpent)}
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 font-semibold">Fluxo de contas</h2>
+          <AccountsFlowChart data={accountsFlowData} />
+        </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 font-semibold">Alocação de categorias</h2>
+          <CategoryAllocationChart data={categoryData} />
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+        <GoalCard
+          title="Reserva de emergência"
+          {...goalCardProps("reserva_emergencia", RESERVE_TYPE_EMERGENCIA)}
+        />
+        <GoalCard title="Meta: aumentar a renda" {...goalCardProps("aumento_renda", RESERVE_TYPE_RENDA)} />
+      </div>
+    </main>
   );
 }
