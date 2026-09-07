@@ -4,7 +4,8 @@ import { incomes } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
 import { formatCurrency } from "@/lib/format";
 import { MonthSwitcher } from "@/components/MonthSwitcher";
-import { createIncome, deleteIncome } from "./actions";
+import { IncomeRow } from "./IncomeRow";
+import { createIncome, updateIncome, deleteIncome } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -69,23 +70,13 @@ export default async function EntradasPage({
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-t border-black/10 dark:border-white/10">
-                <td className="px-3 py-2">{r.description}</td>
-                <td className="px-3 py-2">{formatCurrency(r.amount)}</td>
-                <td className="px-3 py-2">
-                  {total > 0 ? `${((Number(r.amount) / total) * 100).toFixed(0)}%` : "-"}
-                </td>
-                <td className="px-3 py-2 text-right">
-                  <form
-                    action={async () => {
-                      "use server";
-                      await deleteIncome(r.id);
-                    }}
-                  >
-                    <button className="text-red-600 hover:underline">excluir</button>
-                  </form>
-                </td>
-              </tr>
+              <IncomeRow
+                key={r.id}
+                income={r}
+                percentage={total > 0 ? `${((Number(r.amount) / total) * 100).toFixed(0)}%` : "-"}
+                updateIncome={updateIncome}
+                deleteIncome={deleteIncome}
+              />
             ))}
             {rows.length === 0 && (
               <tr>

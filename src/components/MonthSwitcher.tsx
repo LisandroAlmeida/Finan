@@ -9,6 +9,7 @@ export function MonthSwitcher({ month, basePath }: { month: string; basePath: st
     <div className="flex items-center justify-center gap-4 py-2">
       <Link
         href={`${basePath}?month=${prev}`}
+        prefetch={false}
         className="rounded-full px-2 py-1 text-lg hover:bg-black/5 dark:hover:bg-white/10"
         aria-label="Mês anterior"
       >
@@ -19,6 +20,7 @@ export function MonthSwitcher({ month, basePath }: { month: string; basePath: st
       </span>
       <Link
         href={`${basePath}?month=${next}`}
+        prefetch={false}
         className="rounded-full px-2 py-1 text-lg hover:bg-black/5 dark:hover:bg-white/10"
         aria-label="Próximo mês"
       >

@@ -1,9 +1,9 @@
 import { eq, asc } from "drizzle-orm";
 import { db } from "@/db";
 import { subscriptions, accounts } from "@/db/schema";
-import { formatCurrency, formatDate } from "@/lib/format";
-import { BankBadge } from "@/components/BankBadge";
-import { createSubscription, deactivateSubscription, deleteSubscription } from "./actions";
+import { formatCurrency } from "@/lib/format";
+import { SubscriptionRow } from "./SubscriptionRow";
+import { createSubscription, updateSubscription, deactivateSubscription, deleteSubscription } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -124,53 +124,15 @@ export default async function AssinaturasPage() {
           </thead>
           <tbody>
             {subscriptionList.map((s) => (
-              <tr key={s.id} className="border-t border-black/10 dark:border-white/10">
-                <td className="px-3 py-2">{s.name}</td>
-                <td className="px-3 py-2">
-                  {s.category ? (
-                    <span
-                      className="rounded-full px-2 py-0.5 text-xs text-white"
-                      style={{ backgroundColor: s.category.color }}
-                    >
-                      {s.category.name}
-                    </span>
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td className="px-3 py-2">
-                  {s.account ? (
-                    <div className="flex items-center gap-2">
-                      <BankBadge bank={s.account.bank} size={18} /> {s.account.name}
-                    </div>
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td className="px-3 py-2">{formatCurrency(s.amount)}</td>
-                <td className="px-3 py-2">{s.billingCycle === "anual" ? "Anual" : "Mensal"}</td>
-                <td className="px-3 py-2">{formatDate(s.nextChargeDate)}</td>
-                <td className="px-3 py-2">
-                  <div className="flex items-center justify-end gap-3">
-                    <form
-                      action={async () => {
-                        "use server";
-                        await deactivateSubscription(s.id);
-                      }}
-                    >
-                      <button className="text-xs text-yellow-600 hover:underline">desativar</button>
-                    </form>
-                    <form
-                      action={async () => {
-                        "use server";
-                        await deleteSubscription(s.id);
-                      }}
-                    >
-                      <button className="text-xs text-red-600 hover:underline">excluir</button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
+              <SubscriptionRow
+                key={s.id}
+                subscription={s}
+                categoryList={categoryList}
+                accountList={accountList}
+                updateSubscription={updateSubscription}
+                deactivateSubscription={deactivateSubscription}
+                deleteSubscription={deleteSubscription}
+              />
             ))}
             {subscriptionList.length === 0 && (
               <tr>

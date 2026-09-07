@@ -2,8 +2,9 @@ import { desc } from "drizzle-orm";
 import { db } from "@/db";
 import { reserves, goals } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
-import { formatCurrency, formatDate } from "@/lib/format";
-import { createReserve, deleteReserve, upsertGoal } from "./actions";
+import { formatCurrency } from "@/lib/format";
+import { ReserveRow } from "./ReserveRow";
+import { createReserve, updateReserve, deleteReserve, upsertGoal } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -104,22 +105,13 @@ export default async function ReservasPage() {
           </thead>
           <tbody>
             {reserveList.map((r) => (
-              <tr key={r.id} className="border-t border-black/10 dark:border-white/10">
-                <td className="px-3 py-2">{r.name}</td>
-                <td className="px-3 py-2">{r.type}</td>
-                <td className="px-3 py-2">{formatCurrency(r.amount)}</td>
-                <td className="px-3 py-2">{formatDate(r.date)}</td>
-                <td className="px-3 py-2 text-right">
-                  <form
-                    action={async () => {
-                      "use server";
-                      await deleteReserve(r.id);
-                    }}
-                  >
-                    <button className="text-xs text-red-600 hover:underline">excluir</button>
-                  </form>
-                </td>
-              </tr>
+              <ReserveRow
+                key={r.id}
+                reserve={r}
+                typeSuggestions={RESERVE_TYPE_SUGGESTIONS}
+                updateReserve={updateReserve}
+                deleteReserve={deleteReserve}
+              />
             ))}
             {reserveList.length === 0 && (
               <tr>

@@ -29,6 +29,34 @@ export async function createSubscription(formData: FormData) {
   revalidatePath("/assinaturas");
 }
 
+export async function updateSubscription(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const categoryIdRaw = String(formData.get("categoryId") ?? "");
+  const accountIdRaw = String(formData.get("accountId") ?? "");
+  const amount = Number(formData.get("amount"));
+  const billingCycle = String(formData.get("billingCycle") ?? "mensal") as "mensal" | "anual";
+  const nextChargeDate = String(formData.get("nextChargeDate"));
+
+  if (!id || !name || !amount || !nextChargeDate) {
+    throw new Error("Nome, valor e próxima cobrança são obrigatórios.");
+  }
+
+  await db
+    .update(subscriptions)
+    .set({
+      name,
+      categoryId: categoryIdRaw ? categoryIdRaw : null,
+      accountId: accountIdRaw ? accountIdRaw : null,
+      amount: amount.toFixed(2),
+      billingCycle,
+      nextChargeDate,
+    })
+    .where(eq(subscriptions.id, id));
+
+  revalidatePath("/assinaturas");
+}
+
 export async function deactivateSubscription(id: string) {
   await db.update(subscriptions).set({ active: false }).where(eq(subscriptions.id, id));
   revalidatePath("/assinaturas");

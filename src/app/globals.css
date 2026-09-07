@@ -22,3 +22,11 @@ body {
   color: var(--foreground);
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 }
+
+/* Selects sempre com fundo/texto escuros, independente do tema do SO —
+   o dropdown nativo do navegador ignora as classes dark: do Tailwind. */
+select,
+select option {
+  background-color: #171717;
+  color: #ededed;
+}

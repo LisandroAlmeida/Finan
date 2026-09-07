@@ -27,6 +27,26 @@ export async function createReserve(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateReserve(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const type = String(formData.get("type") ?? "").trim();
+  const amount = Number(formData.get("amount"));
+  const date = String(formData.get("date"));
+
+  if (!id || !name || !type || !amount || !date) {
+    throw new Error("Nome, tipo, valor e data são obrigatórios.");
+  }
+
+  await db
+    .update(reserves)
+    .set({ name, type, amount: amount.toFixed(2), date })
+    .where(eq(reserves.id, id));
+
+  revalidatePath("/reservas");
+  revalidatePath("/");
+}
+
 export async function deleteReserve(id: string) {
   await db.delete(reserves).where(eq(reserves.id, id));
   revalidatePath("/reservas");

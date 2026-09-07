@@ -17,7 +17,7 @@ export function RemainingDonut({ income, spent }: { income: number; spent: numbe
   const colors = overspent ? ["#EF4444"] : ["#2563EB", "#E5E7EB"];
 
   return (
-    <div className="relative mx-auto h-56 w-56">
+    <div className="relative mx-auto aspect-square w-full max-w-[224px]">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie

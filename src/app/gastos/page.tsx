@@ -2,10 +2,10 @@ import { eq, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { expenses, accounts } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
-import { formatCurrency, formatDate } from "@/lib/format";
-import { BankBadge } from "@/components/BankBadge";
+import { formatCurrency } from "@/lib/format";
 import { MonthSwitcher } from "@/components/MonthSwitcher";
-import { createExpense, deleteExpense } from "./actions";
+import { ExpenseRow } from "./ExpenseRow";
+import { createExpense, updateExpense, deleteExpense } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -132,46 +132,14 @@ export default async function GastosPage({
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.id} className="border-t border-black/10 dark:border-white/10">
-                <td className="px-3 py-2">
-                  <span
-                    className="rounded-full px-2 py-0.5 text-xs text-white"
-                    style={{ backgroundColor: r.category.color }}
-                  >
-                    {r.category.name}
-                  </span>
-                </td>
-                <td className="px-3 py-2">
-                  {r.description ?? "-"}
-                  {r.installmentTotal && r.installmentTotal > 1 && (
-                    <span className="ml-1 text-xs text-black/40 dark:text-white/40">
-                      ({r.installmentNumber}/{r.installmentTotal})
-                    </span>
-                  )}
-                </td>
-                <td className="px-3 py-2">
-                  {r.account ? (
-                    <div className="flex items-center gap-2">
-                      <BankBadge bank={r.account.bank} size={18} /> {r.account.name}
-                    </div>
-                  ) : (
-                    "-"
-                  )}
-                </td>
-                <td className="px-3 py-2">{formatCurrency(r.amount)}</td>
-                <td className="px-3 py-2">{formatDate(r.date)}</td>
-                <td className="px-3 py-2">{r.essential ? "✔" : ""}</td>
-                <td className="px-3 py-2">
-                  <form
-                    action={async () => {
-                      "use server";
-                      await deleteExpense(r.id);
-                    }}
-                  >
-                    <button className="text-red-600 hover:underline">excluir</button>
-                  </form>
-                </td>
-              </tr>
+              <ExpenseRow
+                key={r.id}
+                expense={r}
+                categoryList={categoryList}
+                accountList={accountList}
+                updateExpense={updateExpense}
+                deleteExpense={deleteExpense}
+              />
             ))}
             {rows.length === 0 && (
               <tr>

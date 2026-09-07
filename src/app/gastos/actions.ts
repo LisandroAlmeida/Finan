@@ -73,6 +73,37 @@ export async function createExpense(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateExpense(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const description = String(formData.get("description") ?? "").trim() || null;
+  const categoryId = String(formData.get("categoryId"));
+  const accountIdRaw = String(formData.get("accountId") ?? "");
+  const accountId = accountIdRaw ? accountIdRaw : null;
+  const amount = Number(formData.get("amount"));
+  const date = String(formData.get("date"));
+  const essential = formData.get("essential") === "on";
+
+  if (!id || !categoryId || !amount || !date) {
+    throw new Error("Categoria, valor e data são obrigatórios.");
+  }
+
+  await db
+    .update(expenses)
+    .set({
+      description,
+      categoryId,
+      accountId,
+      amount: amount.toFixed(2),
+      date,
+      month: toMonth(date),
+      essential,
+    })
+    .where(eq(expenses.id, id));
+
+  revalidatePath("/gastos");
+  revalidatePath("/");
+}
+
 export async function deleteExpense(id: string) {
   await db.delete(expenses).where(eq(expenses.id, id));
   revalidatePath("/gastos");

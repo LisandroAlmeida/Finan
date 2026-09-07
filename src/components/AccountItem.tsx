@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { BankBadge } from "./BankBadge";
+import { ConfirmButton } from "./ConfirmButton";
 import { BANK_OPTIONS, bankCardGradient } from "@/lib/banks";
 
 type Account = {
@@ -78,33 +79,6 @@ function CardVisual({ account }: { account: Account }) {
   );
 }
 
-function ConfirmButton({
-  label,
-  confirmMessage,
-  pending,
-  onConfirm,
-  className,
-}: {
-  label: string;
-  confirmMessage: string;
-  pending: boolean;
-  onConfirm: () => void;
-  className: string;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={pending}
-      onClick={() => {
-        if (window.confirm(confirmMessage)) onConfirm();
-      }}
-      className={`${className} disabled:opacity-50`}
-    >
-      {label}
-    </button>
-  );
-}
-
 function expiryInputValue(account: Account) {
   if (!account.expiryMonth || !account.expiryYear) return "";
   return `${account.expiryYear}-${String(account.expiryMonth).padStart(2, "0")}`;
@@ -140,6 +114,7 @@ export function AccountItem({
       <div className="rounded-2xl border border-black/10 p-3 text-sm dark:border-white/10">
         <form action={handleSave} className="flex flex-col gap-2">
           <input type="hidden" name="id" value={account.id} />
+          <input type="hidden" name="type" value={account.type} />
           <div className="flex flex-col">
             <label className="text-xs text-foreground/60">Nome</label>
             <input
@@ -164,17 +139,6 @@ export function AccountItem({
                 ))}
               </select>
             </div>
-            <div className="flex flex-col">
-              <label className="text-xs text-foreground/60">Tipo</label>
-              <select
-                name="type"
-                defaultValue={account.type}
-                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-              >
-                <option value="cartao">Cartão</option>
-                <option value="conta">Conta</option>
-              </select>
-            </div>
           </div>
           <div className="flex flex-wrap gap-2">
             <div className="flex flex-col">
@@ -188,26 +152,30 @@ export function AccountItem({
                 className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
               />
             </div>
-            <div className="flex flex-col">
-              <label className="text-xs text-foreground/60">Últimos 4 dígitos</label>
-              <input
-                name="lastFourDigits"
-                maxLength={4}
-                inputMode="numeric"
-                pattern="[0-9]{0,4}"
-                defaultValue={account.lastFourDigits ?? ""}
-                className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-xs text-foreground/60">Validade</label>
-              <input
-                name="expiry"
-                type="month"
-                defaultValue={expiryInputValue(account)}
-                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-              />
-            </div>
+            {account.type === "cartao" && (
+              <>
+                <div className="flex flex-col">
+                  <label className="text-xs text-foreground/60">Últimos 4 dígitos</label>
+                  <input
+                    name="lastFourDigits"
+                    maxLength={4}
+                    inputMode="numeric"
+                    pattern="[0-9]{0,4}"
+                    defaultValue={account.lastFourDigits ?? ""}
+                    className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-xs text-foreground/60">Validade</label>
+                  <input
+                    name="expiry"
+                    type="month"
+                    defaultValue={expiryInputValue(account)}
+                    className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                  />
+                </div>
+              </>
+            )}
           </div>
           <div className="mt-1 flex gap-3">
             <button
