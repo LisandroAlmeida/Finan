@@ -140,9 +140,10 @@ export default async function CartoesPage({
         </form>
         <p className="mt-2 text-xs text-black/50 dark:text-white/50">
           O <strong>dia de fechamento</strong> é o que define em qual fatura um gasto feito nesse
-          cartão vai entrar: compras antes do fechamento entram na fatura do mês seguinte; compras
-          no dia do fechamento ou depois só entram na fatura de dois meses depois. Sem esse dia
-          preenchido, o gasto continua sendo agrupado pelo mês civil da data digitada.
+          cartão vai entrar: compras antes do fechamento ficam no mesmo mês; compras no dia do
+          fechamento ou depois já entram no mês seguinte (ex: fechamento dia 26 — uma compra em
+          25 fica em Agosto, uma compra em 26 já vira Setembro). Sem esse dia preenchido, o gasto
+          continua sendo agrupado pelo mês civil da data digitada.
         </p>
       </section>
 
