@@ -16,12 +16,11 @@ App de controle financeiro pessoal (substituto da planilha "Organização Financ
 - **Gastos** (`/gastos`): cadastro de gastos por categoria/forma de pagamento/essencial, com **parcelamento automático** (informa o valor total e o número de parcelas, o app gera uma linha por mês)
 - **Contas** (`/contas`): cadastro de contas/cartões (com "logo" colorido por banco) e lançamento/baixa da fatura do mês
 - **Entradas** (`/entradas`): cadastro das entradas do mês
+- **Assinaturas** (`/assinaturas`): cadastro de assinaturas recorrentes (nome, categoria, forma de pagamento, valor, ciclo mensal/anual, próxima cobrança), com total mensal equivalente e desativação/exclusão
+- **Reservas & Investimentos** (`/reservas`): cadastro de reservas/investimentos e edição do valor das metas (reserva de emergência e aumento de renda) pela interface
 
 ## O que falta (schema já existe, falta a tela)
 
-- **Assinaturas** (tabela `subscriptions` já modelada: nome, valor, ciclo mensal/anual, próxima cobrança)
-- **Reservas & Investimentos** (tabela `reserves` já modelada — hoje só entra via seed/SQL, falta uma tela de cadastro)
-- **Metas** (tabela `goals` já modelada e já aparece no dashboard — falta uma tela pra editar o valor da meta pela interface, hoje é via seed/SQL)
 - Importar o histórico da planilha antiga
 
 ## Como rodar
@@ -77,11 +76,11 @@ src/
     gastos/           Página + server actions de Gastos
     contas/           Página + server actions de Contas
     entradas/         Página + server actions de Entradas
+    assinaturas/      Página + server actions de Assinaturas
+    reservas/         Página + server actions de Reservas & Metas
 ```
 
 ## Próximos passos sugeridos
 
-1. Tela de Assinaturas (reaproveita o mesmo padrão de `/contas`)
-2. Tela de Reservas & Investimentos + edição de Metas
-3. Import do histórico da planilha antiga (script pontual lendo o CSV exportado do Google Sheets)
-4. PWA / ajustes de mobile pra sua esposa usar bem pelo celular
+1. Import do histórico da planilha antiga (script pontual lendo o CSV exportado do Google Sheets)
+2. PWA / ajustes de mobile pra sua esposa usar bem pelo celular

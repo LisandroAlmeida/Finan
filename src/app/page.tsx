@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db } from "@/db";
-import { incomes, expenses, bills } from "@/db/schema";
+import { incomes, expenses, bills, goals } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
 import { formatCurrency } from "@/lib/format";
 import { MonthSwitcher } from "@/components/MonthSwitcher";
@@ -27,7 +27,7 @@ export default async function DashboardPage({
     db.query.expenses.findMany({ where: eq(expenses.month, month), with: { category: true } }),
     db.query.bills.findMany({ where: eq(bills.month, month), with: { account: true } }),
     db.query.reserves.findMany(),
-    db.query.goals.findMany(),
+    db.query.goals.findMany({ orderBy: desc(goals.month) }),
   ]);
 
   const totalIncome = incomeRows.reduce((s, r) => s + Number(r.amount), 0);
