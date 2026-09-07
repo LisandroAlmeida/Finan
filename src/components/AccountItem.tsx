@@ -12,6 +12,7 @@ type Account = {
   bank: string;
   type: "conta" | "cartao";
   dueDay: number | null;
+  closingDay: number | null;
   lastFourDigits: string | null;
   expiryMonth: number | null;
   expiryYear: number | null;
@@ -74,7 +75,10 @@ function CardVisual({ account }: { account: Account }) {
       <ChipIcon />
       <div>
         <p className="font-mono text-[15px] tracking-wider drop-shadow-sm">{masked}</p>
-        <p className="mt-1 text-[11px] text-white/80">Validade {validity}</p>
+        <p className="mt-1 text-[11px] text-white/80">
+          Validade {validity}
+          {account.closingDay && <> · Fecha dia {account.closingDay}</>}
+        </p>
       </div>
     </div>
   );
@@ -137,6 +141,20 @@ export function AccountItem({
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            {account.type === "cartao" && (
+              <div className="flex flex-col">
+                <label className="text-xs text-foreground/60">Dia fechamento</label>
+                <input
+                  name="closingDay"
+                  type="number"
+                  min="1"
+                  max="31"
+                  placeholder="Ex: 27"
+                  defaultValue={account.closingDay ?? ""}
+                  className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                />
+              </div>
+            )}
             <div className="flex flex-col">
               <label className="text-xs text-foreground/60">Dia vencimento</label>
               <input

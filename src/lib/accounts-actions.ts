@@ -26,6 +26,7 @@ export async function createAccount(formData: FormData) {
   const bank = String(formData.get("bank") ?? "outro");
   const type = String(formData.get("type") ?? "cartao") as "conta" | "cartao";
   const dueDayRaw = formData.get("dueDay");
+  const closingDayRaw = formData.get("closingDay");
   const lastFourDigits = String(formData.get("lastFourDigits") ?? "").trim().slice(0, 4) || null;
   const { expiryMonth, expiryYear } = parseExpiry(formData);
 
@@ -36,6 +37,7 @@ export async function createAccount(formData: FormData) {
     bank,
     type,
     dueDay: dueDayRaw ? Number(dueDayRaw) : null,
+    closingDay: type === "cartao" && closingDayRaw ? Number(closingDayRaw) : null,
     lastFourDigits,
     expiryMonth,
     expiryYear,
@@ -50,6 +52,7 @@ export async function updateAccount(formData: FormData) {
   const bank = String(formData.get("bank") ?? "outro");
   const type = String(formData.get("type") ?? "cartao") as "conta" | "cartao";
   const dueDayRaw = formData.get("dueDay");
+  const closingDayRaw = formData.get("closingDay");
   const lastFourDigits = String(formData.get("lastFourDigits") ?? "").trim().slice(0, 4) || null;
   const { expiryMonth, expiryYear } = parseExpiry(formData);
 
@@ -62,6 +65,7 @@ export async function updateAccount(formData: FormData) {
       bank,
       type,
       dueDay: dueDayRaw ? Number(dueDayRaw) : null,
+      closingDay: type === "cartao" && closingDayRaw ? Number(closingDayRaw) : null,
       lastFourDigits,
       expiryMonth,
       expiryYear,

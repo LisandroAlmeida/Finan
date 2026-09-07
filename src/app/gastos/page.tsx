@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { eq, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { expenses, accounts } from "@/db/schema";
@@ -46,7 +47,12 @@ export default async function GastosPage({
             />
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Categoria</label>
+            <label className="text-xs text-black/60 dark:text-white/60">
+              Categoria{" "}
+              <Link href="/categorias" className="text-blue-600 hover:underline">
+                (+ nova)
+              </Link>
+            </label>
             <select
               name="categoryId"
               required
@@ -113,7 +119,9 @@ export default async function GastosPage({
         </form>
         <p className="mt-2 text-xs text-black/50 dark:text-white/50">
           Em compras parceladas, informe o valor total da compra — o app divide e lança uma parcela em
-          cada mês automaticamente.
+          cada mês automaticamente. Se a forma de pagamento for um cartão com{" "}
+          <strong>dia de fechamento</strong> cadastrado (em Cartões), o gasto já entra direto na
+          fatura correta, mesmo que isso não seja o mesmo mês da data digitada.
         </p>
       </section>
 

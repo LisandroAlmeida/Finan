@@ -3,8 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { expenses } from "@/db/schema";
-import { toMonth } from "@/lib/month";
+import { accounts, expenses } from "@/db/schema";
+import { resolveExpenseMonth } from "@/lib/cardCycle";
+
+/** Busca o dia de fechamento do cartão usado (null se não for cartão, ou se a forma de pagamento não tiver essa info). */
+async function getClosingDay(accountId: string | null): Promise<number | null> {
+  if (!accountId) return null;
+  const account = await db.query.accounts.findFirst({ where: eq(accounts.id, accountId) });
+  return account?.closingDay ?? null;
+}
 
 /** Divide um valor total em N parcelas que somam exatamente o total. */
 function splitInstallments(total: number, count: number): number[] {
@@ -39,6 +46,8 @@ export async function createExpense(formData: FormData) {
     throw new Error("Categoria, valor e data são obrigatórios.");
   }
 
+  const closingDay = await getClosingDay(accountId);
+
   if (installmentTotal <= 1) {
     await db.insert(expenses).values({
       description,
@@ -46,7 +55,7 @@ export async function createExpense(formData: FormData) {
       accountId,
       amount: totalAmount.toFixed(2),
       date,
-      month: toMonth(date),
+      month: resolveExpenseMonth(date, closingDay),
       essential,
     });
   } else {
@@ -60,7 +69,7 @@ export async function createExpense(formData: FormData) {
         accountId,
         amount: parts[i].toFixed(2),
         date: parcelaDate,
-        month: toMonth(parcelaDate),
+        month: resolveExpenseMonth(parcelaDate, closingDay),
         essential,
         installmentGroupId: groupId,
         installmentNumber: i + 1,
@@ -87,6 +96,8 @@ export async function updateExpense(formData: FormData) {
     throw new Error("Categoria, valor e data são obrigatórios.");
   }
 
+  const closingDay = await getClosingDay(accountId);
+
   await db
     .update(expenses)
     .set({
@@ -95,7 +106,7 @@ export async function updateExpense(formData: FormData) {
       accountId,
       amount: amount.toFixed(2),
       date,
-      month: toMonth(date),
+      month: resolveExpenseMonth(date, closingDay),
       essential,
     })
     .where(eq(expenses.id, id));

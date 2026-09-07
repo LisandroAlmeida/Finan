@@ -75,6 +75,17 @@ export default async function CartoesPage({
             </select>
           </div>
           <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Dia fechamento</label>
+            <input
+              name="closingDay"
+              type="number"
+              min="1"
+              max="31"
+              placeholder="Ex: 27"
+              className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
+          <div className="flex flex-col">
             <label className="text-xs text-black/60 dark:text-white/60">Dia vencimento</label>
             <input
               name="dueDay"
@@ -127,6 +138,12 @@ export default async function CartoesPage({
             Cadastrar
           </button>
         </form>
+        <p className="mt-2 text-xs text-black/50 dark:text-white/50">
+          O <strong>dia de fechamento</strong> é o que define em qual fatura um gasto feito nesse
+          cartão vai entrar: compras antes do fechamento entram na fatura do mês seguinte; compras
+          no dia do fechamento ou depois só entram na fatura de dois meses depois. Sem esse dia
+          preenchido, o gasto continua sendo agrupado pelo mês civil da data digitada.
+        </p>
       </section>
 
       <BillSection

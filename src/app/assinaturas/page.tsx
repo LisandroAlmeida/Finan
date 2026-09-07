@@ -1,22 +1,37 @@
-import { eq, asc } from "drizzle-orm";
+import Link from "next/link";
+import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { subscriptions, accounts } from "@/db/schema";
 import { formatCurrency } from "@/lib/format";
+import { nextOccurrence } from "@/lib/subscriptionCycle";
 import { SubscriptionRow } from "./SubscriptionRow";
 import { createSubscription, updateSubscription, deactivateSubscription, deleteSubscription } from "./actions";
 
 export const dynamic = "force-dynamic";
 
+// "Assinaturas" como categoria da própria assinatura é redundante (o registro já
+// está na tela de Assinaturas) — some ela da lista, mas mantém categorias mais
+// específicas (ex: "Plano Telefone") pra quem quiser classificar melhor.
+const REDUNDANT_CATEGORY = /assinatura/i;
+
 export default async function AssinaturasPage() {
-  const [subscriptionList, categoryList, accountList] = await Promise.all([
+  const [subscriptionListRaw, categoryListRaw, accountList] = await Promise.all([
     db.query.subscriptions.findMany({
       where: eq(subscriptions.active, true),
-      orderBy: asc(subscriptions.nextChargeDate),
       with: { category: true, account: true },
     }),
     db.query.categories.findMany(),
     db.query.accounts.findMany({ where: eq(accounts.archived, false) }),
   ]);
+
+  const categoryList = categoryListRaw.filter((c) => !REDUNDANT_CATEGORY.test(c.name));
+
+  // A "próxima cobrança" é calculada a partir da data salva + o ciclo, sempre
+  // rolando pra frente até cair hoje ou no futuro — não precisa editar isso
+  // toda vez que fecha um mês.
+  const subscriptionList = subscriptionListRaw
+    .map((s) => ({ ...s, nextChargeDate: nextOccurrence(s.nextChargeDate, s.billingCycle) }))
+    .sort((a, b) => a.nextChargeDate.localeCompare(b.nextChargeDate));
 
   const totalMonthly = subscriptionList.reduce((s, sub) => {
     const amount = Number(sub.amount);
@@ -46,7 +61,12 @@ export default async function AssinaturasPage() {
             />
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Categoria</label>
+            <label className="text-xs text-black/60 dark:text-white/60">
+              Categoria{" "}
+              <Link href="/categorias" className="text-blue-600 hover:underline">
+                (+ nova)
+              </Link>
+            </label>
             <select
               name="categoryId"
               className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
@@ -107,6 +127,10 @@ export default async function AssinaturasPage() {
             Cadastrar
           </button>
         </form>
+        <p className="mt-2 text-xs text-black/50 dark:text-white/50">
+          Depois de cadastrada, a <strong>próxima cobrança</strong> é recalculada sozinha a partir
+          dessa data e do ciclo — não precisa entrar aqui todo mês só pra atualizar a data.
+        </p>
       </section>
 
       <section className="mt-6 overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
