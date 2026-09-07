@@ -28,3 +28,20 @@ export const BANK_OPTIONS = Object.entries(BANKS).map(([key, v]) => ({
   value: key,
   label: v.label,
 }));
+
+function darken(hex: string, amount: number): string {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const channel = (shift: number) => {
+    const c = (num >> shift) & 0xff;
+    return Math.max(0, Math.round(c * (1 - amount)))
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${channel(16)}${channel(8)}${channel(0)}`;
+}
+
+/** Gradiente sutil (da cor do banco pra uma versão mais escura), pro fundo do cartão visual. */
+export function bankCardGradient(bank: string): string {
+  const { color } = bankInfo(bank);
+  return `linear-gradient(135deg, ${color} 0%, ${darken(color, 0.5)} 100%)`;
+}

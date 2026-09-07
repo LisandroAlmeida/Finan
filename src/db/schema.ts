@@ -2,6 +2,7 @@ import {
   pgTable,
   uuid,
   text,
+  varchar,
   numeric,
   date,
   boolean,
@@ -36,6 +37,9 @@ export const accounts = pgTable("accounts", {
   type: accountTypeEnum("type").notNull().default("cartao"),
   closingDay: integer("closing_day"), // dia de fechamento da fatura (cartão)
   dueDay: integer("due_day"), // dia de vencimento
+  lastFourDigits: varchar("last_four_digits", { length: 4 }), // últimos 4 dígitos do cartão
+  expiryMonth: integer("expiry_month"), // validade do cartão (1-12)
+  expiryYear: integer("expiry_year"), // validade do cartão (ex: 2029)
   archived: boolean("archived").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

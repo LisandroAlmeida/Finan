@@ -4,9 +4,17 @@ import { accounts, bills } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { BankBadge } from "@/components/BankBadge";
+import { AccountItem } from "@/components/AccountItem";
 import { BANK_OPTIONS } from "@/lib/banks";
 import { MonthSwitcher } from "@/components/MonthSwitcher";
-import { createAccount, upsertBill, markBillPaid, deleteBill } from "./actions";
+import {
+  createAccount,
+  updateAccount,
+  deleteAccount,
+  upsertBill,
+  markBillPaid,
+  deleteBill,
+} from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +34,9 @@ export default async function ContasPage({
     }),
   ]);
 
+  const cardAccounts = accountList.filter((a) => a.type === "cartao");
+  const plainAccounts = accountList.filter((a) => a.type !== "cartao");
+
   const billedAccountIds = new Set(billList.map((b) => b.accountId));
   const accountsWithoutBill = accountList.filter((a) => !billedAccountIds.has(a.id));
 
@@ -38,23 +49,26 @@ export default async function ContasPage({
 
       <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">
         <h2 className="mb-3 font-semibold">Contas &amp; cartões cadastrados</h2>
-        <ul className="mb-4 flex flex-wrap gap-3">
-          {accountList.map((a) => (
-            <li
-              key={a.id}
-              className="flex items-center gap-2 rounded-full border border-black/10 py-1 pl-1 pr-3 text-sm dark:border-white/10"
-            >
-              <BankBadge bank={a.bank} size={22} />
-              {a.name}
-              <span className="text-black/40 dark:text-white/40">
-                ({a.type === "cartao" ? "cartão" : "conta"})
-              </span>
-            </li>
-          ))}
-          {accountList.length === 0 && (
-            <li className="text-black/50 dark:text-white/50">Nenhuma conta cadastrada ainda.</li>
-          )}
-        </ul>
+
+        {cardAccounts.length > 0 && (
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {cardAccounts.map((a) => (
+              <AccountItem key={a.id} account={a} updateAccount={updateAccount} deleteAccount={deleteAccount} />
+            ))}
+          </div>
+        )}
+
+        {plainAccounts.length > 0 && (
+          <div className="mb-4 flex flex-col gap-2">
+            {plainAccounts.map((a) => (
+              <AccountItem key={a.id} account={a} updateAccount={updateAccount} deleteAccount={deleteAccount} />
+            ))}
+          </div>
+        )}
+
+        {accountList.length === 0 && (
+          <p className="mb-4 text-black/50 dark:text-white/50">Nenhuma conta cadastrada ainda.</p>
+        )}
 
         <form action={createAccount} className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col">
@@ -97,6 +111,25 @@ export default async function ContasPage({
               min="1"
               max="31"
               className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Últimos 4 dígitos</label>
+            <input
+              name="lastFourDigits"
+              maxLength={4}
+              inputMode="numeric"
+              pattern="[0-9]{0,4}"
+              placeholder="0000"
+              className="w-20 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Validade</label>
+            <input
+              name="expiry"
+              type="month"
+              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
             />
           </div>
           <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
@@ -160,7 +193,7 @@ export default async function ContasPage({
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">
                       <BankBadge bank={b.account!.bank} size={20} />
-                      {b.account!.name}
+                      <span className="text-foreground">{b.account!.name}</span>
                     </div>
                   </td>
                   <td className="px-3 py-2">{formatCurrency(b.plannedAmount)}</td>
