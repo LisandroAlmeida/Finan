@@ -37,10 +37,10 @@ async function main() {
     await db
       .insert(accounts)
       .values([
-        { name: "Bradesco", bank: "bradesco", type: "cartao", dueDay: 8 },
+        { name: "Bradesco", bank: "bradesco", type: "cartao", dueDay: 8, lastFourDigits: "4821", expiryMonth: 11, expiryYear: 2028 },
         { name: "MP", bank: "mercadopago", type: "conta", dueDay: 11 },
-        { name: "Amazon", bank: "amazon", type: "cartao", dueDay: 28 },
-        { name: "Nubank", bank: "nubank", type: "cartao", dueDay: 7 },
+        { name: "Amazon", bank: "amazon", type: "cartao", dueDay: 28, lastFourDigits: "7734", expiryMonth: 3, expiryYear: 2029 },
+        { name: "Nubank", bank: "nubank", type: "cartao", dueDay: 7, lastFourDigits: "1092", expiryMonth: 6, expiryYear: 2030 },
         { name: "Internet Mãe", bank: "outro", type: "conta", dueDay: 7 },
         { name: "Condominio", bank: "outro", type: "conta", dueDay: 10 },
         { name: "Caixa Apto", bank: "caixa", type: "conta", dueDay: 11 },
