@@ -6,11 +6,11 @@ import { db } from "@/db";
 import { accounts, bills } from "@/db/schema";
 
 function parseExpiry(formData: FormData): { expiryMonth: number | null; expiryYear: number | null } {
-  const expiryRaw = String(formData.get("expiry") ?? "").trim(); // "YYYY-MM" (input type=month)
-  const [yearStr, monthStr] = expiryRaw.split("-");
-  const year = Number(yearStr);
-  const month = Number(monthStr);
-  if (!expiryRaw || Number.isNaN(year) || Number.isNaN(month)) {
+  const monthRaw = String(formData.get("expiryMonth") ?? "").trim();
+  const yearRaw = String(formData.get("expiryYear") ?? "").trim();
+  const month = monthRaw ? Number(monthRaw) : NaN;
+  const year = yearRaw ? Number(yearRaw) : NaN;
+  if (Number.isNaN(month) || Number.isNaN(year)) {
     return { expiryMonth: null, expiryYear: null };
   }
   return { expiryMonth: month, expiryYear: year };

@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { BankBadge } from "./BankBadge";
 import { ConfirmButton } from "./ConfirmButton";
 import { BANK_OPTIONS, bankCardGradient } from "@/lib/banks";
+import { EXPIRY_MONTHS, expiryYearOptions } from "@/lib/cardExpiry";
 
 type Account = {
   id: string;
@@ -77,11 +78,6 @@ function CardVisual({ account }: { account: Account }) {
       </div>
     </div>
   );
-}
-
-function expiryInputValue(account: Account) {
-  if (!account.expiryMonth || !account.expiryYear) return "";
-  return `${account.expiryYear}-${String(account.expiryMonth).padStart(2, "0")}`;
 }
 
 export function AccountItem({
@@ -167,12 +163,33 @@ export function AccountItem({
                 </div>
                 <div className="flex flex-col">
                   <label className="text-xs text-foreground/60">Validade</label>
-                  <input
-                    name="expiry"
-                    type="month"
-                    defaultValue={expiryInputValue(account)}
-                    className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-                  />
+                  <div className="flex items-center gap-1">
+                    <select
+                      name="expiryMonth"
+                      defaultValue={account.expiryMonth ?? ""}
+                      className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                    >
+                      <option value="">MM</option>
+                      {EXPIRY_MONTHS.map((m) => (
+                        <option key={m.value} value={m.value}>
+                          {m.label}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="text-foreground/50">/</span>
+                    <select
+                      name="expiryYear"
+                      defaultValue={account.expiryYear ?? ""}
+                      className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                    >
+                      <option value="">AA</option>
+                      {expiryYearOptions(account.expiryYear).map((y) => (
+                        <option key={y} value={y}>
+                          {String(y).slice(-2)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </>
             )}

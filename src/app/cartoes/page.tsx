@@ -4,6 +4,7 @@ import { accounts, bills } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
 import { AccountItem } from "@/components/AccountItem";
 import { BANK_OPTIONS } from "@/lib/banks";
+import { EXPIRY_MONTHS, expiryYearOptions } from "@/lib/cardExpiry";
 import { MonthSwitcher } from "@/components/MonthSwitcher";
 import { BillSection } from "@/components/BillSection";
 import { createAccount, updateAccount, deleteAccount } from "@/lib/accounts-actions";
@@ -96,11 +97,31 @@ export default async function CartoesPage({
           </div>
           <div className="flex flex-col">
             <label className="text-xs text-black/60 dark:text-white/60">Validade</label>
-            <input
-              name="expiry"
-              type="month"
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            />
+            <div className="flex items-center gap-1">
+              <select
+                name="expiryMonth"
+                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              >
+                <option value="">MM</option>
+                {EXPIRY_MONTHS.map((m) => (
+                  <option key={m.value} value={m.value}>
+                    {m.label}
+                  </option>
+                ))}
+              </select>
+              <span className="text-foreground/50">/</span>
+              <select
+                name="expiryYear"
+                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              >
+                <option value="">AA</option>
+                {expiryYearOptions().map((y) => (
+                  <option key={y} value={y}>
+                    {String(y).slice(-2)}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
           <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
             Cadastrar
