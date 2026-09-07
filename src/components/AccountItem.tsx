@@ -12,11 +12,13 @@ type Account = {
   bank: string;
   type: "conta" | "cartao";
   dueDay: number | null;
-  closingDay: number | null;
+  parentAccountId?: string | null;
   lastFourDigits: string | null;
   expiryMonth: number | null;
   expiryYear: number | null;
 };
+
+type CardOption = { id: string; name: string };
 
 function ChipIcon() {
   return (
@@ -56,7 +58,7 @@ function ContactlessIcon() {
   );
 }
 
-function CardVisual({ account }: { account: Account }) {
+function CardVisual({ account, parentName }: { account: Account; parentName?: string }) {
   const masked = `•••• •••• •••• ${account.lastFourDigits ?? "••••"}`;
   const validity =
     account.expiryMonth && account.expiryYear
@@ -77,7 +79,7 @@ function CardVisual({ account }: { account: Account }) {
         <p className="font-mono text-[15px] tracking-wider drop-shadow-sm">{masked}</p>
         <p className="mt-1 text-[11px] text-white/80">
           Validade {validity}
-          {account.closingDay && <> · Fecha dia {account.closingDay}</>}
+          {parentName && <> · Adicional de {parentName}</>}
         </p>
       </div>
     </div>
@@ -86,10 +88,14 @@ function CardVisual({ account }: { account: Account }) {
 
 export function AccountItem({
   account,
+  parentName,
+  cardOptions,
   updateAccount,
   deleteAccount,
 }: {
   account: Account;
+  parentName?: string;
+  cardOptions?: CardOption[];
   updateAccount: (formData: FormData) => Promise<void>;
   deleteAccount: (id: string) => Promise<void>;
 }) {
@@ -141,20 +147,6 @@ export function AccountItem({
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            {account.type === "cartao" && (
-              <div className="flex flex-col">
-                <label className="text-xs text-foreground/60">Dia fechamento</label>
-                <input
-                  name="closingDay"
-                  type="number"
-                  min="1"
-                  max="31"
-                  placeholder="Ex: 27"
-                  defaultValue={account.closingDay ?? ""}
-                  className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-                />
-              </div>
-            )}
             <div className="flex flex-col">
               <label className="text-xs text-foreground/60">Dia vencimento</label>
               <input
@@ -168,6 +160,21 @@ export function AccountItem({
             </div>
             {account.type === "cartao" && (
               <>
+                <div className="flex flex-col">
+                  <label className="text-xs text-foreground/60">Cartão adicional de</label>
+                  <select
+                    name="parentAccountId"
+                    defaultValue={account.parentAccountId ?? ""}
+                    className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                  >
+                    <option value="">Não (titular)</option>
+                    {(cardOptions ?? []).map((o) => (
+                      <option key={o.id} value={o.id}>
+                        {o.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 <div className="flex flex-col">
                   <label className="text-xs text-foreground/60">Últimos 4 dígitos</label>
                   <input
@@ -236,7 +243,7 @@ export function AccountItem({
   if (account.type === "cartao") {
     return (
       <div className="flex flex-col gap-2">
-        <CardVisual account={account} />
+        <CardVisual account={account} parentName={parentName} />
         <div className="flex items-center justify-end gap-3 px-1">
           <button
             type="button"

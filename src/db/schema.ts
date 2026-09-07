@@ -9,6 +9,7 @@ import {
   integer,
   timestamp,
   pgEnum,
+  type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -35,8 +36,16 @@ export const accounts = pgTable("accounts", {
   name: text("name").notNull(), // ex: "Bradesco", "Nubank"
   bank: text("bank").notNull(), // chave usada pra achar o logo, ex: "bradesco", "nubank"
   type: accountTypeEnum("type").notNull().default("cartao"),
-  closingDay: integer("closing_day"), // dia de fechamento da fatura (cartão)
+  closingDay: integer("closing_day"), // não usado hoje: o dia de fechamento muda mês a mês, então
+  // a fatura de cada gasto é decidida na hora do lançamento (flag "cai na fatura seguinte" em Gastos)
   dueDay: integer("due_day"), // dia de vencimento
+  // Cartão adicional: aponta pro cartão titular. Cartões adicionais
+  // compartilham UMA fatura só com o titular (ex: Lety/Lisandro 02/Lisandro
+  // 30 são adicionais do Bradesco titular) — a fatura do mês é lançada só no
+  // titular (parentAccountId nulo), nunca nos adicionais.
+  parentAccountId: uuid("parent_account_id").references((): AnyPgColumn => accounts.id, {
+    onDelete: "set null",
+  }),
   lastFourDigits: varchar("last_four_digits", { length: 4 }), // últimos 4 dígitos do cartão
   expiryMonth: integer("expiry_month"), // validade do cartão (1-12)
   expiryYear: integer("expiry_year"), // validade do cartão (ex: 2029)

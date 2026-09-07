@@ -113,15 +113,18 @@ export default async function GastosPage({
           <label className="flex items-center gap-1.5 pb-2 text-sm">
             <input name="essential" type="checkbox" /> Essencial
           </label>
+          <label className="flex items-center gap-1.5 pb-2 text-sm">
+            <input name="nextInvoice" type="checkbox" /> Cai na fatura seguinte
+          </label>
           <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
             Adicionar
           </button>
         </form>
         <p className="mt-2 text-xs text-black/50 dark:text-white/50">
           Em compras parceladas, informe o valor total da compra — o app divide e lança uma parcela em
-          cada mês automaticamente. Se a forma de pagamento for um cartão com{" "}
-          <strong>dia de fechamento</strong> cadastrado (em Cartões), o gasto já entra direto na
-          fatura correta, mesmo que isso não seja o mesmo mês da data digitada.
+          cada mês automaticamente. Marque <strong>&quot;Cai na fatura seguinte&quot;</strong> quando a
+          compra no cartão foi feita depois do fechamento daquele mês — o gasto entra direto no mês
+          seguinte, mesmo que a data digitada seja desse mês.
         </p>
       </section>
 

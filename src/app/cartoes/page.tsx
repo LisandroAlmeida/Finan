@@ -27,9 +27,22 @@ export default async function CartoesPage({
     }),
   ]);
 
+  // Cartões adicionais (parentAccountId preenchido) compartilham UMA fatura só
+  // com o titular — a lista pra "Fatura do mês" e o form de vínculo só
+  // conhecem cartões titulares (sem parentAccountId).
+  const topLevelAccounts = accountList.filter((a) => !a.parentAccountId);
+  const parentNameById = new Map(topLevelAccounts.map((a) => [a.id, a.name]));
+  const childrenByParent = new Map<string, typeof accountList>();
+  for (const a of accountList) {
+    if (a.parentAccountId) {
+      childrenByParent.set(a.parentAccountId, [...(childrenByParent.get(a.parentAccountId) ?? []), a]);
+    }
+  }
+  const orderedAccounts = topLevelAccounts.flatMap((p) => [p, ...(childrenByParent.get(p.id) ?? [])]);
+
   const cardBills = billList.filter((b) => b.account?.type === "cartao");
   const billedAccountIds = new Set(cardBills.map((b) => b.accountId));
-  const accountsWithoutBill = accountList.filter((a) => !billedAccountIds.has(a.id));
+  const accountsWithoutBill = topLevelAccounts.filter((a) => !billedAccountIds.has(a.id));
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-6">
@@ -40,8 +53,15 @@ export default async function CartoesPage({
 
         {accountList.length > 0 && (
           <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {accountList.map((a) => (
-              <AccountItem key={a.id} account={a} updateAccount={updateAccount} deleteAccount={deleteAccount} />
+            {orderedAccounts.map((a) => (
+              <AccountItem
+                key={a.id}
+                account={a}
+                parentName={a.parentAccountId ? parentNameById.get(a.parentAccountId) : undefined}
+                cardOptions={topLevelAccounts.filter((o) => o.id !== a.id)}
+                updateAccount={updateAccount}
+                deleteAccount={deleteAccount}
+              />
             ))}
           </div>
         )}
@@ -75,17 +95,6 @@ export default async function CartoesPage({
             </select>
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Dia fechamento</label>
-            <input
-              name="closingDay"
-              type="number"
-              min="1"
-              max="31"
-              placeholder="Ex: 27"
-              className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            />
-          </div>
-          <div className="flex flex-col">
             <label className="text-xs text-black/60 dark:text-white/60">Dia vencimento</label>
             <input
               name="dueDay"
@@ -94,6 +103,20 @@ export default async function CartoesPage({
               max="31"
               className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
             />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Cartão adicional de</label>
+            <select
+              name="parentAccountId"
+              className="w-40 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            >
+              <option value="">Não (titular)</option>
+              {topLevelAccounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="flex flex-col">
             <label className="text-xs text-black/60 dark:text-white/60">Últimos 4 dígitos</label>
@@ -139,11 +162,13 @@ export default async function CartoesPage({
           </button>
         </form>
         <p className="mt-2 text-xs text-black/50 dark:text-white/50">
-          O <strong>dia de fechamento</strong> é o que define em qual fatura um gasto feito nesse
-          cartão vai entrar: compras antes do fechamento ficam no mesmo mês; compras no dia do
-          fechamento ou depois já entram no mês seguinte (ex: fechamento dia 26 — uma compra em
-          25 fica em Agosto, uma compra em 26 já vira Setembro). Sem esse dia preenchido, o gasto
-          continua sendo agrupado pelo mês civil da data digitada.
+          Marque <strong>&quot;Cartão adicional de&quot;</strong> quando esse cartão fizer parte da
+          mesma fatura de outro (ex: cartões adicionais da família no Bradesco) — a fatura do mês
+          passa a ser lançada só no titular, como uma linha só, mesmo com vários cartões usando
+          ela. Como o dia de fechamento muda de mês a mês, a fatura de cada gasto não é calculada
+          automaticamente aqui — na hora de lançar o gasto (em Gastos), marque a caixinha{" "}
+          <strong>&quot;Cai na fatura seguinte&quot;</strong> quando a compra tiver sido feita
+          depois do fechamento daquele mês.
         </p>
       </section>
 

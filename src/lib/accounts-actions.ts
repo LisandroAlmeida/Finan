@@ -21,23 +21,36 @@ function revalidateForType(type: "conta" | "cartao") {
   revalidatePath("/");
 }
 
+/** Só permite um nível de hierarquia: um cartão adicional não pode virar
+ * titular de outro adicional (evita correntes tipo A adicional de B
+ * adicional de C, que quebraria o agrupamento da fatura). */
+async function assertCanBeParent(parentAccountId: string) {
+  const parent = await db.query.accounts.findFirst({ where: eq(accounts.id, parentAccountId) });
+  if (parent?.parentAccountId) {
+    throw new Error(
+      `"${parent.name}" já é adicional de outro cartão — escolha o titular original como principal.`,
+    );
+  }
+}
+
 export async function createAccount(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
   const bank = String(formData.get("bank") ?? "outro");
   const type = String(formData.get("type") ?? "cartao") as "conta" | "cartao";
   const dueDayRaw = formData.get("dueDay");
-  const closingDayRaw = formData.get("closingDay");
+  const parentAccountIdRaw = String(formData.get("parentAccountId") ?? "");
   const lastFourDigits = String(formData.get("lastFourDigits") ?? "").trim().slice(0, 4) || null;
   const { expiryMonth, expiryYear } = parseExpiry(formData);
 
   if (!name) throw new Error("Nome da conta/cartão é obrigatório.");
+  if (type === "cartao" && parentAccountIdRaw) await assertCanBeParent(parentAccountIdRaw);
 
   await db.insert(accounts).values({
     name,
     bank,
     type,
     dueDay: dueDayRaw ? Number(dueDayRaw) : null,
-    closingDay: type === "cartao" && closingDayRaw ? Number(closingDayRaw) : null,
+    parentAccountId: type === "cartao" && parentAccountIdRaw ? parentAccountIdRaw : null,
     lastFourDigits,
     expiryMonth,
     expiryYear,
@@ -52,11 +65,20 @@ export async function updateAccount(formData: FormData) {
   const bank = String(formData.get("bank") ?? "outro");
   const type = String(formData.get("type") ?? "cartao") as "conta" | "cartao";
   const dueDayRaw = formData.get("dueDay");
-  const closingDayRaw = formData.get("closingDay");
+  const parentAccountIdRaw = String(formData.get("parentAccountId") ?? "");
   const lastFourDigits = String(formData.get("lastFourDigits") ?? "").trim().slice(0, 4) || null;
   const { expiryMonth, expiryYear } = parseExpiry(formData);
 
   if (!id || !name) throw new Error("Conta e nome são obrigatórios.");
+  if (parentAccountIdRaw === id) throw new Error("Um cartão não pode ser adicional de si mesmo.");
+  if (type === "cartao" && parentAccountIdRaw) await assertCanBeParent(parentAccountIdRaw);
+
+  // Se esse cartão vai virar adicional de outro, qualquer cartão que hoje é
+  // adicional DELE precisa "subir de nível" (virar titular), senão a cadeia
+  // ficaria com 2 níveis.
+  if (type === "cartao" && parentAccountIdRaw) {
+    await db.update(accounts).set({ parentAccountId: null }).where(eq(accounts.parentAccountId, id));
+  }
 
   await db
     .update(accounts)
@@ -65,7 +87,7 @@ export async function updateAccount(formData: FormData) {
       bank,
       type,
       dueDay: dueDayRaw ? Number(dueDayRaw) : null,
-      closingDay: type === "cartao" && closingDayRaw ? Number(closingDayRaw) : null,
+      parentAccountId: type === "cartao" && parentAccountIdRaw ? parentAccountIdRaw : null,
       lastFourDigits,
       expiryMonth,
       expiryYear,
