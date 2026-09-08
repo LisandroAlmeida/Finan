@@ -16,6 +16,7 @@ import { relations } from "drizzle-orm";
 // ---------- Enums ----------
 export const accountTypeEnum = pgEnum("account_type", ["conta", "cartao"]);
 export const billingCycleEnum = pgEnum("billing_cycle", ["mensal", "anual"]);
+export const paymentMethodEnum = pgEnum("payment_method", ["boleto", "pix"]);
 export const goalKeyEnum = pgEnum("goal_key", [
   "reserva_emergencia",
   "aumento_renda",
@@ -49,6 +50,8 @@ export const accounts = pgTable("accounts", {
   lastFourDigits: varchar("last_four_digits", { length: 4 }), // últimos 4 dígitos do cartão
   expiryMonth: integer("expiry_month"), // validade do cartão (1-12)
   expiryYear: integer("expiry_year"), // validade do cartão (ex: 2029)
+  // Só faz sentido pra contas (boletos/pix do dia a dia) — cartões não usam.
+  paymentMethod: paymentMethodEnum("payment_method"),
   archived: boolean("archived").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -16,6 +16,17 @@ type Account = {
   lastFourDigits: string | null;
   expiryMonth: number | null;
   expiryYear: number | null;
+  paymentMethod?: "boleto" | "pix" | null;
+};
+
+const PAYMENT_METHOD_LABELS: Record<"boleto" | "pix", string> = {
+  boleto: "Boleto",
+  pix: "Pix",
+};
+
+const PAYMENT_METHOD_STYLES: Record<"boleto" | "pix", string> = {
+  boleto: "bg-amber-500/15 text-amber-500",
+  pix: "bg-emerald-500/15 text-emerald-500",
 };
 
 type CardOption = { id: string; name: string };
@@ -181,6 +192,20 @@ export function AccountItem({
                 className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
               />
             </div>
+            {account.type === "conta" && (
+              <div className="flex flex-col">
+                <label className="text-xs text-foreground/60">Forma de pagamento</label>
+                <select
+                  name="paymentMethod"
+                  defaultValue={account.paymentMethod ?? ""}
+                  className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                >
+                  <option value="">Não informado</option>
+                  <option value="boleto">Boleto</option>
+                  <option value="pix">Pix</option>
+                </select>
+              </div>
+            )}
             {account.type === "cartao" && (
               <>
                 <div className="flex flex-col">
@@ -310,7 +335,15 @@ export function AccountItem({
       <span className="flex-1 font-medium text-foreground" title={account.name}>
         {account.name}
       </span>
-      <span className="text-foreground/50">conta</span>
+      {account.paymentMethod ? (
+        <span
+          className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${PAYMENT_METHOD_STYLES[account.paymentMethod]}`}
+        >
+          {PAYMENT_METHOD_LABELS[account.paymentMethod]}
+        </span>
+      ) : (
+        <span className="text-foreground/50">conta</span>
+      )}
       <div className="flex items-center gap-3">
         <button
           type="button"

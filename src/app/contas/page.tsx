@@ -83,6 +83,17 @@ export default async function ContasPage({
               className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
             />
           </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Forma de pagamento</label>
+            <select
+              name="paymentMethod"
+              defaultValue="boleto"
+              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            >
+              <option value="boleto">Boleto</option>
+              <option value="pix">Pix</option>
+            </select>
+          </div>
           <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
             Cadastrar
           </button>

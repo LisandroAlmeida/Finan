@@ -16,6 +16,11 @@ function parseExpiry(formData: FormData): { expiryMonth: number | null; expiryYe
   return { expiryMonth: month, expiryYear: year };
 }
 
+function parsePaymentMethod(formData: FormData): "boleto" | "pix" | null {
+  const raw = String(formData.get("paymentMethod") ?? "");
+  return raw === "boleto" || raw === "pix" ? raw : null;
+}
+
 function revalidateForType(type: "conta" | "cartao") {
   revalidatePath(type === "cartao" ? "/cartoes" : "/contas");
   revalidatePath("/");
@@ -41,6 +46,7 @@ export async function createAccount(formData: FormData) {
   const parentAccountIdRaw = String(formData.get("parentAccountId") ?? "");
   const lastFourDigits = String(formData.get("lastFourDigits") ?? "").trim().slice(0, 4) || null;
   const { expiryMonth, expiryYear } = parseExpiry(formData);
+  const paymentMethod = parsePaymentMethod(formData);
 
   if (!name) throw new Error("Nome da conta/cartão é obrigatório.");
   if (type === "cartao" && parentAccountIdRaw) await assertCanBeParent(parentAccountIdRaw);
@@ -54,6 +60,7 @@ export async function createAccount(formData: FormData) {
     lastFourDigits,
     expiryMonth,
     expiryYear,
+    paymentMethod: type === "conta" ? paymentMethod : null,
   });
 
   revalidateForType(type);
@@ -68,6 +75,7 @@ export async function updateAccount(formData: FormData) {
   const parentAccountIdRaw = String(formData.get("parentAccountId") ?? "");
   const lastFourDigits = String(formData.get("lastFourDigits") ?? "").trim().slice(0, 4) || null;
   const { expiryMonth, expiryYear } = parseExpiry(formData);
+  const paymentMethod = parsePaymentMethod(formData);
 
   if (!id || !name) throw new Error("Conta e nome são obrigatórios.");
   if (parentAccountIdRaw === id) throw new Error("Um cartão não pode ser adicional de si mesmo.");
@@ -91,6 +99,7 @@ export async function updateAccount(formData: FormData) {
       lastFourDigits,
       expiryMonth,
       expiryYear,
+      paymentMethod: type === "conta" ? paymentMethod : null,
     })
     .where(eq(accounts.id, id));
 
