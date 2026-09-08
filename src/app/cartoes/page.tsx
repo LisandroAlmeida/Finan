@@ -2,7 +2,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { accounts, bills } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
-import { AccountItem } from "@/components/AccountItem";
+import { CardGroup } from "@/components/CardGroup";
 import { BANK_OPTIONS } from "@/lib/banks";
 import { EXPIRY_MONTHS, expiryYearOptions } from "@/lib/cardExpiry";
 import { MonthSwitcher } from "@/components/MonthSwitcher";
@@ -31,15 +31,12 @@ export default async function CartoesPage({
   // com o titular — a lista pra "Fatura do mês" e o form de vínculo só
   // conhecem cartões titulares (sem parentAccountId).
   const topLevelAccounts = accountList.filter((a) => !a.parentAccountId);
-  const parentNameById = new Map(topLevelAccounts.map((a) => [a.id, a.name]));
   const childrenByParent = new Map<string, typeof accountList>();
   for (const a of accountList) {
     if (a.parentAccountId) {
       childrenByParent.set(a.parentAccountId, [...(childrenByParent.get(a.parentAccountId) ?? []), a]);
     }
   }
-  const orderedAccounts = topLevelAccounts.flatMap((p) => [p, ...(childrenByParent.get(p.id) ?? [])]);
-
   const cardBills = billList.filter((b) => b.account?.type === "cartao");
   const billedAccountIds = new Set(cardBills.map((b) => b.accountId));
   const accountsWithoutBill = topLevelAccounts.filter((a) => !billedAccountIds.has(a.id));
@@ -53,11 +50,11 @@ export default async function CartoesPage({
 
         {accountList.length > 0 && (
           <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {orderedAccounts.map((a) => (
-              <AccountItem
+            {topLevelAccounts.map((a) => (
+              <CardGroup
                 key={a.id}
-                account={a}
-                parentName={a.parentAccountId ? parentNameById.get(a.parentAccountId) : undefined}
+                parent={a}
+                additionalCards={childrenByParent.get(a.id) ?? []}
                 cardOptions={topLevelAccounts.filter((o) => o.id !== a.id)}
                 updateAccount={updateAccount}
                 deleteAccount={deleteAccount}
@@ -168,7 +165,8 @@ export default async function CartoesPage({
           ela. Como o dia de fechamento muda de mês a mês, a fatura de cada gasto não é calculada
           automaticamente aqui — na hora de lançar o gasto (em Gastos), marque a caixinha{" "}
           <strong>&quot;Cai na fatura seguinte&quot;</strong> quando a compra tiver sido feita
-          depois do fechamento daquele mês.
+          depois do fechamento daquele mês. Clique no cartão titular pra ver ou ocultar os
+          adicionais vinculados a ele.
         </p>
       </section>
 

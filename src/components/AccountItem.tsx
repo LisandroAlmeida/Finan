@@ -58,7 +58,17 @@ function ContactlessIcon() {
   );
 }
 
-function CardVisual({ account, parentName }: { account: Account; parentName?: string }) {
+function CardVisual({
+  account,
+  parentName,
+  badgeText,
+  expanded,
+}: {
+  account: Account;
+  parentName?: string;
+  badgeText?: string;
+  expanded?: boolean;
+}) {
   const masked = `•••• •••• •••• ${account.lastFourDigits ?? "••••"}`;
   const validity =
     account.expiryMonth && account.expiryYear
@@ -72,7 +82,14 @@ function CardVisual({ account, parentName }: { account: Account; parentName?: st
     >
       <div className="flex items-start justify-between gap-2">
         <span className="text-sm font-semibold leading-tight drop-shadow-sm">{account.name}</span>
-        <ContactlessIcon />
+        {badgeText ? (
+          <span className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-black/25 px-2 py-0.5 text-[10px] font-medium">
+            {badgeText}
+            <span aria-hidden>{expanded ? "▲" : "▼"}</span>
+          </span>
+        ) : (
+          <ContactlessIcon />
+        )}
       </div>
       <ChipIcon />
       <div>
@@ -90,12 +107,18 @@ export function AccountItem({
   account,
   parentName,
   cardOptions,
+  badgeText,
+  expanded,
+  onCardClick,
   updateAccount,
   deleteAccount,
 }: {
   account: Account;
   parentName?: string;
   cardOptions?: CardOption[];
+  badgeText?: string;
+  expanded?: boolean;
+  onCardClick?: () => void;
   updateAccount: (formData: FormData) => Promise<void>;
   deleteAccount: (id: string) => Promise<void>;
 }) {
@@ -243,7 +266,24 @@ export function AccountItem({
   if (account.type === "cartao") {
     return (
       <div className="flex flex-col gap-2">
-        <CardVisual account={account} parentName={parentName} />
+        <div
+          onClick={onCardClick}
+          role={onCardClick ? "button" : undefined}
+          tabIndex={onCardClick ? 0 : undefined}
+          onKeyDown={
+            onCardClick
+              ? (e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    onCardClick();
+                  }
+                }
+              : undefined
+          }
+          className={onCardClick ? "cursor-pointer" : undefined}
+        >
+          <CardVisual account={account} parentName={parentName} badgeText={badgeText} expanded={expanded} />
+        </div>
         <div className="flex items-center justify-end gap-3 px-1">
           <button
             type="button"
