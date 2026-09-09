@@ -1,6 +1,6 @@
-import { formatCurrency, formatDate } from "@/lib/format";
-import { BankBadge } from "@/components/BankBadge";
-import { upsertBill, markBillPaid, deleteBill } from "@/lib/accounts-actions";
+import { formatCurrency } from "@/lib/format";
+import { upsertBill, updateBill, markBillPaid, deleteBill } from "@/lib/accounts-actions";
+import { BillRow } from "@/components/BillRow";
 
 type AccountOption = { id: string; name: string };
 
@@ -80,59 +80,14 @@ export function BillSection({
           </thead>
           <tbody>
             {billList.map((b) => (
-              <tr key={b.id} className="border-t border-black/10 dark:border-white/10">
-                <td className="px-3 py-2">
-                  <div className="flex items-center gap-2">
-                    <BankBadge bank={b.account!.bank} size={20} />
-                    <span className="text-foreground">{b.account!.name}</span>
-                  </div>
-                </td>
-                <td className="px-3 py-2">{formatCurrency(b.plannedAmount)}</td>
-                <td className="px-3 py-2">{b.actualAmount ? formatCurrency(b.actualAmount) : "-"}</td>
-                <td className="px-3 py-2">{b.paidAt ? formatDate(b.paidAt) : "-"}</td>
-                <td className="px-3 py-2">
-                  {b.paid ? (
-                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700 dark:bg-green-900/40 dark:text-green-300">
-                      Pago
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-yellow-100 px-2 py-0.5 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300">
-                      Em aberto
-                    </span>
-                  )}
-                </td>
-                <td className="px-3 py-2">
-                  <div className="flex items-center justify-end gap-3">
-                    {!b.paid && (
-                      <form action={markBillPaid} className="flex items-center gap-1">
-                        <input type="hidden" name="id" value={b.id} />
-                        <input type="hidden" name="redirectPath" value={redirectPath} />
-                        <input
-                          name="actualAmount"
-                          type="number"
-                          step="0.01"
-                          placeholder={Number(b.plannedAmount).toFixed(2)}
-                          className="w-20 rounded-md border border-black/15 px-1.5 py-1 text-xs dark:border-white/20 dark:bg-transparent"
-                        />
-                        <input
-                          name="paidAt"
-                          type="date"
-                          className="rounded-md border border-black/15 px-1.5 py-1 text-xs dark:border-white/20 dark:bg-transparent"
-                        />
-                        <button className="text-xs text-blue-600 hover:underline">marcar pago</button>
-                      </form>
-                    )}
-                    <form
-                      action={async () => {
-                        "use server";
-                        await deleteBill(b.id);
-                      }}
-                    >
-                      <button className="text-xs text-red-600 hover:underline">excluir</button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
+              <BillRow
+                key={b.id}
+                bill={b}
+                redirectPath={redirectPath}
+                updateBill={updateBill}
+                markBillPaid={markBillPaid}
+                deleteBill={deleteBill}
+              />
             ))}
             {billList.length === 0 && (
               <tr>

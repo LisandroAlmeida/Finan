@@ -133,6 +133,32 @@ export async function upsertBill(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateBill(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const plannedAmount = Number(formData.get("plannedAmount"));
+  const actualAmountRaw = String(formData.get("actualAmount") ?? "").trim();
+  const paidAtRaw = String(formData.get("paidAt") ?? "").trim();
+  const paid = formData.get("paid") === "on";
+  const redirectPath = String(formData.get("redirectPath") ?? "/contas");
+
+  if (!id || Number.isNaN(plannedAmount)) {
+    throw new Error("Fatura e valor planejado são obrigatórios.");
+  }
+
+  await db
+    .update(bills)
+    .set({
+      plannedAmount: plannedAmount.toFixed(2),
+      actualAmount: actualAmountRaw ? Number(actualAmountRaw).toFixed(2) : null,
+      paidAt: paidAtRaw || null,
+      paid,
+    })
+    .where(eq(bills.id, id));
+
+  revalidatePath(redirectPath);
+  revalidatePath("/");
+}
+
 export async function markBillPaid(formData: FormData) {
   const id = String(formData.get("id"));
   const actualAmountRaw = formData.get("actualAmount");
