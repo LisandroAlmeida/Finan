@@ -109,16 +109,16 @@ export function BillRow({
 
   return (
     <tr className="border-t border-black/10 dark:border-white/10">
-      <td className="px-3 py-2">
-        <div className="flex items-center gap-2">
-          <BankBadge bank={bill.account!.bank} size={20} />
+      <td className="px-2 py-2">
+        <div className="flex items-center gap-1.5">
+          <BankBadge bank={bill.account!.bank} size={18} />
           <span className="text-foreground">{bill.account!.name}</span>
         </div>
       </td>
-      <td className="px-3 py-2">{formatCurrency(bill.plannedAmount)}</td>
-      <td className="px-3 py-2">{bill.actualAmount ? formatCurrency(bill.actualAmount) : "-"}</td>
-      <td className="px-3 py-2">{bill.paidAt ? formatDate(bill.paidAt) : "-"}</td>
-      <td className="px-3 py-2">
+      <td className="px-2 py-2">{formatCurrency(bill.plannedAmount)}</td>
+      <td className="px-2 py-2">{bill.actualAmount ? formatCurrency(bill.actualAmount) : "-"}</td>
+      <td className="px-2 py-2">{bill.paidAt ? formatDate(bill.paidAt) : "-"}</td>
+      <td className="px-2 py-2">
         {bill.paid ? (
           <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700 dark:bg-green-900/40 dark:text-green-300">
             Pago
@@ -129,24 +129,16 @@ export function BillRow({
           </span>
         )}
       </td>
-      <td className="px-3 py-2">
-        <div className="flex items-center justify-end gap-3">
+      <td className="px-2 py-2">
+        <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
           {!bill.paid && (
-            <form action={markBillPaid} className="flex items-center gap-1">
+            <form action={markBillPaid}>
               <input type="hidden" name="id" value={bill.id} />
               <input type="hidden" name="redirectPath" value={redirectPath} />
-              <input
-                name="actualAmount"
-                type="number"
-                step="0.01"
-                placeholder={Number(bill.plannedAmount).toFixed(2)}
-                className="w-20 rounded-md border border-black/15 px-1.5 py-1 text-xs dark:border-white/20 dark:bg-transparent"
-              />
-              <input
-                name="paidAt"
-                type="date"
-                className="rounded-md border border-black/15 px-1.5 py-1 text-xs dark:border-white/20 dark:bg-transparent"
-              />
+              {/* Usa o valor planejado e a data de hoje como padrão — pra um valor
+                  ou data diferente, "editar" cobre o mesmo caso com mais controle. */}
+              <input type="hidden" name="actualAmount" value={bill.plannedAmount} />
+              <input type="hidden" name="paidAt" value={new Date().toISOString().slice(0, 10)} />
               <button className="text-xs text-blue-600 hover:underline">marcar pago</button>
             </form>
           )}

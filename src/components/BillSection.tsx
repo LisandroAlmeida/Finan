@@ -70,12 +70,12 @@ export function BillSection({
         <table className="w-full text-sm">
           <thead className="bg-black/5 text-left dark:bg-white/5">
             <tr>
-              <th className="px-3 py-2">Conta</th>
-              <th className="px-3 py-2">Planejado</th>
-              <th className="px-3 py-2">Real</th>
-              <th className="px-3 py-2">Pago em</th>
-              <th className="px-3 py-2">Status</th>
-              <th className="px-3 py-2" />
+              <th className="px-2 py-2">Conta</th>
+              <th className="px-2 py-2">Planejado</th>
+              <th className="px-2 py-2">Real</th>
+              <th className="px-2 py-2">Pago em</th>
+              <th className="px-2 py-2">Status</th>
+              <th className="px-2 py-2" />
             </tr>
           </thead>
           <tbody>
@@ -91,7 +91,7 @@ export function BillSection({
             ))}
             {billList.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-black/50 dark:text-white/50">
+                <td colSpan={6} className="px-2 py-6 text-center text-black/50 dark:text-white/50">
                   Nenhuma fatura lançada nesse mês.
                 </td>
               </tr>
@@ -100,9 +100,9 @@ export function BillSection({
           {billList.length > 0 && (
             <tfoot>
               <tr className="border-t border-black/10 font-semibold dark:border-white/10">
-                <td className="px-3 py-2">Total</td>
-                <td className="px-3 py-2">{formatCurrency(totalPlanned)}</td>
-                <td className="px-3 py-2">{formatCurrency(totalActual)}</td>
+                <td className="px-2 py-2">Total</td>
+                <td className="px-2 py-2">{formatCurrency(totalPlanned)}</td>
+                <td className="px-2 py-2">{formatCurrency(totalActual)}</td>
                 <td colSpan={3} />
               </tr>
             </tfoot>
