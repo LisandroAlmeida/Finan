@@ -107,7 +107,7 @@ export default async function CartoesPage({
               name="parentAccountId"
               className="w-40 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
             >
-              <option value="">Nenhum (este é o titular)</option>
+              <option value="">Titular</option>
               {topLevelAccounts.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.name}

@@ -215,7 +215,7 @@ export function AccountItem({
                     defaultValue={account.parentAccountId ?? ""}
                     className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
                   >
-                    <option value="">Nenhum (este é o titular)</option>
+                    <option value="">Titular</option>
                     {(cardOptions ?? []).map((o) => (
                       <option key={o.id} value={o.id}>
                         {o.name}
