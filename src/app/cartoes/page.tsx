@@ -42,7 +42,7 @@ export default async function CartoesPage({
   const accountsWithoutBill = topLevelAccounts.filter((a) => !billedAccountIds.has(a.id));
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-6">
+    <main className="mx-auto max-w-6xl px-4 py-6">
       <MonthSwitcher month={month} basePath="/cartoes" />
 
       <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">

@@ -39,7 +39,7 @@ export default async function AssinaturasPage() {
   }, 0);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-6">
+    <main className="mx-auto max-w-6xl px-4 py-6">
       <section className="mt-4 rounded-xl border border-black/10 p-4 text-center dark:border-white/10">
         <h2 className="font-semibold text-black/60 dark:text-white/60">Total mensal equivalente</h2>
         <p className="mt-1 text-3xl font-bold">{formatCurrency(totalMonthly)}</p>

@@ -92,7 +92,7 @@ export default async function DashboardPage({
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-4 py-6">
+    <main className="mx-auto max-w-6xl px-4 py-6">
       <MonthSwitcher month={month} basePath="/" />
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

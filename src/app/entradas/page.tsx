@@ -25,7 +25,7 @@ export default async function EntradasPage({
   const total = rows.reduce((sum, r) => sum + Number(r.amount), 0);
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-6">
+    <main className="mx-auto max-w-6xl px-4 py-6">
       <MonthSwitcher month={month} basePath="/entradas" />
 
       <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">

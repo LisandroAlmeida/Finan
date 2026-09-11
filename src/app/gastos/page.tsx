@@ -32,7 +32,7 @@ export default async function GastosPage({
   const essentialTotal = rows.filter((r) => r.essential).reduce((s, r) => s + Number(r.amount), 0);
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-6">
+    <main className="mx-auto max-w-6xl px-4 py-6">
       <MonthSwitcher month={month} basePath="/gastos" />
 
       <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">

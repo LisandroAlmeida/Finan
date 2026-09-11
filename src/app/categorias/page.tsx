@@ -10,7 +10,7 @@ export default async function CategoriasPage() {
   const categoryList = await db.query.categories.findMany({ orderBy: asc(categories.name) });
 
   return (
-    <main className="mx-auto max-w-3xl px-4 py-6">
+    <main className="mx-auto max-w-6xl px-4 py-6">
       <h1 className="text-lg font-semibold">Categorias</h1>
       <p className="mt-1 text-sm text-black/60 dark:text-white/60">
         Essas são as categorias disponíveis em Gastos e Assinaturas. Cadastre uma nova sempre que

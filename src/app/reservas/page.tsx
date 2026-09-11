@@ -37,7 +37,7 @@ export default async function ReservasPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-6">
+    <main className="mx-auto max-w-6xl px-4 py-6">
       <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">
         <h2 className="mb-3 font-semibold">Novo registro</h2>
         <form action={createReserve} className="flex flex-wrap items-end gap-3">
