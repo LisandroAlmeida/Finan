@@ -95,39 +95,37 @@ export default async function DashboardPage({
     <main className="mx-auto max-w-7xl px-4 py-6">
       <MonthSwitcher month={month} basePath="/" />
 
-      <div className="mt-4 flex flex-col gap-4 lg:flex-row">
-        <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
-            <h2 className="mb-2 text-center font-semibold">Restante para gastar</h2>
-            <RemainingDonut income={totalIncome} spent={totalSpent} />
-            <p className="mt-2 text-center text-xs text-black/50 dark:text-white/50">
-              Entradas {formatCurrency(totalIncome)} − Gastos e contas {formatCurrency(totalSpent)}
-            </p>
-          </div>
-
-          <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
-            <h2 className="mb-2 font-semibold">Fluxo de contas</h2>
-            <AccountsFlowChart data={accountsFlowData} />
-          </div>
-
-          <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
-            <h2 className="mb-2 font-semibold">Alocação de categorias</h2>
-            <CategoryAllocationChart data={categoryData} />
-          </div>
-
-          <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
-            <h2 className="mb-2 font-semibold">Gastos por cartão</h2>
-            <CardSpendingChart data={cardSpendingData} />
-          </div>
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 text-center font-semibold">Restante para gastar</h2>
+          <RemainingDonut income={totalIncome} spent={totalSpent} />
+          <p className="mt-2 text-center text-xs text-black/50 dark:text-white/50">
+            Entradas {formatCurrency(totalIncome)} − Gastos e contas {formatCurrency(totalSpent)}
+          </p>
         </div>
 
-        <div className="flex flex-col gap-4 lg:w-80 lg:shrink-0">
-          <GoalCard
-            title="Reserva de emergência"
-            {...goalCardProps("reserva_emergencia", RESERVE_TYPE_EMERGENCIA)}
-          />
-          <GoalCard title="Meta: aumentar a renda" {...goalCardProps("aumento_renda", RESERVE_TYPE_RENDA)} />
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 font-semibold">Alocação de categorias</h2>
+          <CategoryAllocationChart data={categoryData} />
         </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 font-semibold">Gastos por cartão</h2>
+          <CardSpendingChart data={cardSpendingData} />
+        </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 font-semibold">Fluxo de contas</h2>
+          <AccountsFlowChart data={accountsFlowData} />
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <GoalCard
+          title="Reserva de emergência"
+          {...goalCardProps("reserva_emergencia", RESERVE_TYPE_EMERGENCIA)}
+        />
+        <GoalCard title="Meta: aumentar a renda" {...goalCardProps("aumento_renda", RESERVE_TYPE_RENDA)} />
       </div>
     </main>
   );
