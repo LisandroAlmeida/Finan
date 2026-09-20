@@ -5,18 +5,17 @@ parte do histórico de commits — isso aqui é só o que ainda está pra fazer.
 
 ## Em andamento / próximos passos
 
-- **Uber Drive — fase 2 (Despesas do carro / Financiamento)**: parcelas fixas
-  do carro (revisão, seguro, financiamento do veículo) com status
-  pago/pendente, espelhando as abas `Despesas do carro` e `Financiamento` da
-  planilha original. Ainda dentro da mesma arquitetura isolada (tabelas
-  próprias, sem tocar accounts/expenses/bills/incomes). A ideia é uma tabela
-  tipo `uber_installments` (descrição, valor da parcela, nº de parcelas,
-  data de início, status pago/pendente por mês).
-- **Resumo Mensal do Uber**: hoje o dashboard `/uber` já mostra lucro
-  líquido, gastos por categoria e resumo do mês (km, dias, ganho/km) — falta
-  avaliar se algo da aba `Resumo Mensal`/`Resumo` da planilha original
-  (comparativo entre meses, por exemplo) ainda faz falta depois de usar o
-  app por um tempo.
+- **Uber Drive — abas restantes**: hoje o submenu só tem Dashboard, Ganhos,
+  Combustível e Lançamentos. Faltam as demais abas da planilha original:
+  - `Resumo Mensal`/`Resumo`: comparativo mês a mês (o que hoje só existe
+    pra o mês selecionado no Dashboard).
+  - `Despesas do carro` e `Financiamento`: parcelas fixas (revisão, seguro,
+    financiamento do veículo) com status pago/pendente. Ainda dentro da
+    arquitetura isolada (tabelas próprias, tipo `uber_installments`, sem
+    tocar accounts/expenses/bills/incomes).
+- **Nav do Uber**: confirmar que o item "Uber" fica à direita de "Reservas"
+  no menu principal (já resolvido no patch `0001-uber-nav-final.patch`,
+  só falta confirmar depois do push).
 
 ## Ideias sem prioridade definida ainda
 
