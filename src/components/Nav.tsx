@@ -8,10 +8,10 @@ const LINKS = [
   { href: "/gastos", label: "Gastos" },
   { href: "/contas", label: "Contas" },
   { href: "/cartoes", label: "Cartões" },
-  { href: "/uber", label: "Uber" },
   { href: "/entradas", label: "Entradas" },
   { href: "/assinaturas", label: "Assinaturas" },
   { href: "/reservas", label: "Reservas" },
+  { href: "/uber", label: "Uber" },
 ];
 
 export function Nav() {
