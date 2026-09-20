@@ -13,6 +13,10 @@ _(nada por enquanto — itens novos entram aqui conforme surgem)_
 
 ## Concluído recentemente
 
+- **Uber Drive — Dashboard em grade 2x2**: com os 4 cards (Lucro líquido
+  final, Lucro operacional, Gastos por categoria, Resumo do mês) numa grade
+  de 3 colunas sobrava espaço vazio embaixo. Agora são 2 colunas: os 4 cards
+  preenchem a grade certinho, sem sobra.
 - **Uber Drive — Lucro Operacional separado do Lucro Líquido (fase 5)**:
   Financiamento e Seguro são custo fixo de posse do carro (existem
   independente de rodar ou não), diferente de Combustível/Manutenção/

@@ -67,7 +67,7 @@ export default async function UberDashboardPage({
       <MonthSwitcher month={month} basePath="/uber" />
       <UberSubNav />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
           <h2 className="mb-2 text-center font-semibold">Lucro líquido final</h2>
           <RemainingDonut income={totalGanhos} spent={totalGastos} />
