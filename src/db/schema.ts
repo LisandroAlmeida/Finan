@@ -216,6 +216,9 @@ export const uberFixedExpenses = pgTable("uber_fixed_expenses", {
 export const uberFinancings = pgTable("uber_financings", {
   id: uuid("id").primaryKey().defaultRandom(),
   description: text("description").notNull(),
+  // Só informativo (preço de tabela do carro) — não entra na conta do
+  // "total projetado do carro", que é sempre entrada + parcelas.
+  carPrice: numeric("car_price", { precision: 12, scale: 2 }),
   // Valor de entrada pago à vista — soma com as parcelas pro "total
   // projetado do carro".
   downPayment: numeric("down_payment", { precision: 12, scale: 2 }).notNull().default("0"),

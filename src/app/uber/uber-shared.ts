@@ -74,6 +74,19 @@ export function financingProjectedTotal(financing: {
   return Number(financing.downPayment) + financingInstallmentsTotal(financing);
 }
 
+/** Data de vencimento (YYYY-MM-DD) da parcela N de um financiamento,
+ * mantendo o dia do mês da data de início (com ajuste pra meses mais
+ * curtos, ex: início dia 31 num mês de 30 dias cai no dia 30). */
+export function installmentDueDate(startDate: string, n: number): string {
+  const [y, m, d] = startDate.split("-").map(Number);
+  const totalMonths = m - 1 + (n - 1);
+  const targetYear = y + Math.floor(totalMonths / 12);
+  const targetMonth = ((totalMonths % 12) + 12) % 12;
+  const daysInTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
+  const day = Math.min(d, daysInTargetMonth);
+  return `${targetYear}-${String(targetMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
 /** Soma quanto já foi economizado pagando parcelas por um valor menor que o
  * original (ex: antecipação com desconto) — parcelas pagas por um valor
  * maior ou igual ao original não entram na conta. */

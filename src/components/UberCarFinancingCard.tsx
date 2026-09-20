@@ -1,13 +1,20 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { formatCurrency, formatDate } from "@/lib/format";
+import { formatCurrency } from "@/lib/format";
 import { ConfirmButton } from "@/components/ConfirmButton";
-import { financingInstallmentsTotal, financingProjectedTotal } from "@/app/uber/uber-shared";
+import { UberFinancingInstallmentRow } from "@/components/UberFinancingInstallmentRow";
+import {
+  financingInstallmentsTotal,
+  financingProjectedTotal,
+  financingEarlyPaymentSavings,
+  installmentDueDate,
+} from "@/app/uber/uber-shared";
 
 type Financing = {
   id: string;
   description: string;
+  carPrice: string | null;
   downPayment: string;
   installmentAmount: string;
   installmentCount: number;
@@ -21,6 +28,7 @@ type Payment = {
   amount: string;
   category: string;
   description: string | null;
+  parcelaNumero: number | null;
 };
 
 function Stat({ label, value }: { label: string; value: string }) {
@@ -34,11 +42,8 @@ function Stat({ label, value }: { label: string; value: string }) {
 
 export function UberCarFinancingCard({
   financing,
-  installmentNumber,
-  payment,
-  paidCount,
-  earlySavings,
-  month,
+  payments,
+  currentMonth,
   updateUberFinancing,
   deleteUberFinancing,
   payUberFinancingInstallment,
@@ -46,12 +51,10 @@ export function UberCarFinancingCard({
   deleteUberExpense,
 }: {
   financing: Financing;
-  /** null = mês fora do intervalo (ainda não começou ou já quitado). */
-  installmentNumber: number | null;
-  payment: Payment | null;
-  paidCount: number;
-  earlySavings: number;
-  month: string;
+  /** Todos os pagamentos vinculados a esse financiamento (qualquer mês). */
+  payments: Payment[];
+  /** "YYYY-MM" do mês atual, só pra destacar a parcela correspondente. */
+  currentMonth: string;
   updateUberFinancing: (formData: FormData) => Promise<void>;
   deleteUberFinancing: (id: string) => Promise<void>;
   payUberFinancingInstallment: (formData: FormData) => Promise<void>;
@@ -59,7 +62,6 @@ export function UberCarFinancingCard({
   deleteUberExpense: (id: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
-  const [editingPayment, setEditingPayment] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const handleSave = (formData: FormData) => {
@@ -75,35 +77,14 @@ export function UberCarFinancingCard({
     });
   };
 
-  const handlePay = () => {
-    if (!installmentNumber) return;
-    startTransition(async () => {
-      const fd = new FormData();
-      fd.set("financingId", financing.id);
-      fd.set("month", month);
-      fd.set("description", `${financing.description} (${installmentNumber}/${financing.installmentCount})`);
-      fd.set("amount", financing.installmentAmount);
-      fd.set("parcelaNumero", String(installmentNumber));
-      await payUberFinancingInstallment(fd);
-    });
-  };
-
-  const handleUndoPay = () => {
-    if (!payment) return;
-    startTransition(async () => {
-      await deleteUberExpense(payment.id);
-    });
-  };
-
-  const handleSavePayment = (formData: FormData) => {
-    startTransition(async () => {
-      await updateUberExpense(formData);
-      setEditingPayment(false);
-    });
-  };
-
   const totalOriginal = financingInstallmentsTotal(financing);
   const projected = financingProjectedTotal(financing);
+  const earlySavings = financingEarlyPaymentSavings(financing, payments);
+
+  const paymentByParcela = new Map<number, Payment>();
+  for (const p of payments) {
+    if (p.parcelaNumero) paymentByParcela.set(p.parcelaNumero, p);
+  }
 
   if (editing) {
     return (
@@ -117,6 +98,17 @@ export function UberCarFinancingCard({
               required
               defaultValue={financing.description}
               className="w-44 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Valor original do carro (R$)</label>
+            <input
+              name="carPrice"
+              type="number"
+              step="0.01"
+              min="0"
+              defaultValue={financing.carPrice ?? ""}
+              className="w-32 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
             />
           </div>
           <div className="flex flex-col">
@@ -209,7 +201,8 @@ export function UberCarFinancingCard({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+        <Stat label="Valor original do carro" value={financing.carPrice ? formatCurrency(financing.carPrice) : "-"} />
         <Stat label="Entrada" value={formatCurrency(financing.downPayment)} />
         <Stat label="Qtd. de parcelas" value={String(financing.installmentCount)} />
         <Stat label="Valor original da parcela" value={formatCurrency(financing.installmentAmount)} />
@@ -219,101 +212,46 @@ export function UberCarFinancingCard({
 
       <div className="mt-3 flex flex-wrap gap-4 border-t border-black/10 pt-3 text-sm dark:border-white/10">
         <span>
-          Parcelas pagas: <strong>{paidCount}/{financing.installmentCount}</strong>
+          Parcelas pagas: <strong>{payments.length}/{financing.installmentCount}</strong>
         </span>
         <span>
           Economizado pagando antecipado: <strong>{formatCurrency(earlySavings)}</strong>
         </span>
       </div>
 
-      <div className="mt-3 border-t border-black/10 pt-3 dark:border-white/10">
-        {payment ? (
-          editingPayment ? (
-            <form action={handleSavePayment} className="flex flex-wrap items-end gap-2">
-              <input type="hidden" name="id" value={payment.id} />
-              <input type="hidden" name="category" value={payment.category} />
-              <input type="hidden" name="description" value={payment.description ?? ""} />
-              <div className="flex flex-col">
-                <label className="text-xs text-black/60 dark:text-white/60">Data do pagamento</label>
-                <input
-                  name="date"
-                  type="date"
-                  required
-                  defaultValue={payment.date}
-                  className="rounded-md border border-black/15 px-2 py-1.5 text-sm dark:border-white/20 dark:bg-transparent"
+      <div className="mt-3 max-h-96 overflow-y-auto overflow-x-auto rounded-lg border border-black/10 dark:border-white/10">
+        <table className="w-full whitespace-nowrap text-sm">
+          <thead className="sticky top-0 bg-black/5 text-left dark:bg-white/5">
+            <tr>
+              <th className="px-2 py-2">Parcela</th>
+              <th className="px-2 py-2">Vencimento</th>
+              <th className="px-2 py-2">Valor original</th>
+              <th className="px-2 py-2">Valor pago</th>
+              <th className="px-2 py-2">Data pagamento</th>
+              <th className="px-2 py-2">Economia</th>
+              <th className="px-2 py-2">Status</th>
+              <th className="px-2 py-2" />
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: financing.installmentCount }, (_, i) => i + 1).map((n) => {
+              const vencimento = installmentDueDate(financing.startDate, n);
+              return (
+                <UberFinancingInstallmentRow
+                  key={n}
+                  financing={financing}
+                  parcelaNumero={n}
+                  vencimento={vencimento}
+                  payment={paymentByParcela.get(n) ?? null}
+                  isCurrentMonth={vencimento.slice(0, 7) === currentMonth}
+                  payUberFinancingInstallment={payUberFinancingInstallment}
+                  updateUberExpense={updateUberExpense}
+                  deleteUberExpense={deleteUberExpense}
                 />
-              </div>
-              <div className="flex flex-col">
-                <label className="text-xs text-black/60 dark:text-white/60">Valor pago (R$)</label>
-                <input
-                  name="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  required
-                  defaultValue={payment.amount}
-                  className="w-28 rounded-md border border-black/15 px-2 py-1.5 text-sm dark:border-white/20 dark:bg-transparent"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={pending}
-                className="rounded-md bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700 disabled:opacity-50"
-              >
-                Salvar
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditingPayment(false)}
-                className="rounded-md border border-black/15 px-3 py-1.5 text-xs dark:border-white/20"
-              >
-                Cancelar
-              </button>
-            </form>
-          ) : (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm">
-                Parcela {installmentNumber}/{financing.installmentCount} deste mês:
-              </span>
-              <span className="rounded-full bg-emerald-600/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400">
-                Pago em {formatDate(payment.date)} — {formatCurrency(payment.amount)}
-              </span>
-              <button
-                type="button"
-                onClick={() => setEditingPayment(true)}
-                className="text-xs text-blue-600 hover:underline"
-              >
-                editar
-              </button>
-              <button
-                type="button"
-                onClick={handleUndoPay}
-                disabled={pending}
-                className="text-xs text-red-600 hover:underline disabled:opacity-50"
-              >
-                desfazer
-              </button>
-            </div>
-          )
-        ) : installmentNumber ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm">
-              Parcela {installmentNumber}/{financing.installmentCount} deste mês:
-            </span>
-            <button
-              type="button"
-              onClick={handlePay}
-              disabled={pending}
-              className="rounded-full bg-amber-600/15 px-2 py-0.5 text-xs text-amber-700 hover:bg-amber-600/25 disabled:opacity-50 dark:text-amber-400"
-            >
-              Pendente — marcar como pago
-            </button>
-          </div>
-        ) : (
-          <span className="text-xs text-black/40 dark:text-white/40">
-            {financing.active ? "Fora do período deste financiamento neste mês." : "Financiamento quitado."}
-          </span>
-        )}
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );

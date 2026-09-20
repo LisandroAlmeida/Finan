@@ -13,6 +13,14 @@ _(nada por enquanto — itens novos entram aqui conforme surgem)_
 
 ## Concluído recentemente
 
+- **Uber Drive — Financiamento com todas as parcelas visíveis (fase 4)**:
+  - Novo campo "Valor original do carro" (só informativo, não entra na conta
+    do total projetado), mostrado à esquerda de "Entrada".
+  - A tela de Financiamento deixou de depender do seletor de mês: agora
+    lista as 48 parcelas de uma vez (Parcela/Vencimento/Valor original/Valor
+    pago/Data pagamento/Economia/Status), cada uma com seu próprio "marcar
+    pago"/"editar"/"desfazer" — dá pra pagar/corrigir qualquer parcela sem
+    precisar navegar mês a mês até chegar nela.
 - **Uber Drive — Financiamento/Despesas do carro repensados (fase 3)**, pra
   bater com o jeito que a planilha original organizava as coisas:
   - `Lançamentos` agora é só o dia a dia lançado manualmente (lavagem,

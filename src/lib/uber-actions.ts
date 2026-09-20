@@ -264,6 +264,7 @@ export async function payUberFixedExpense(formData: FormData) {
 // ---------- Financiamento do carro ----------
 export async function createUberFinancing(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
+  const carPrice = toNumOrNull(formData.get("carPrice"));
   const downPayment = toNumOrNull(formData.get("downPayment")) ?? "0.00";
   const installmentAmount = Number(formData.get("installmentAmount"));
   const installmentCount = toIntOrNull(formData.get("installmentCount"));
@@ -274,6 +275,7 @@ export async function createUberFinancing(formData: FormData) {
 
   await db.insert(uberFinancings).values({
     description,
+    carPrice,
     downPayment,
     installmentAmount: installmentAmount.toFixed(2),
     installmentCount,
@@ -286,6 +288,7 @@ export async function createUberFinancing(formData: FormData) {
 export async function updateUberFinancing(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const description = String(formData.get("description") ?? "").trim();
+  const carPrice = toNumOrNull(formData.get("carPrice"));
   const downPayment = toNumOrNull(formData.get("downPayment")) ?? "0.00";
   const installmentAmount = Number(formData.get("installmentAmount"));
   const installmentCount = toIntOrNull(formData.get("installmentCount"));
@@ -298,6 +301,7 @@ export async function updateUberFinancing(formData: FormData) {
     .update(uberFinancings)
     .set({
       description,
+      carPrice,
       downPayment,
       installmentAmount: installmentAmount.toFixed(2),
       installmentCount,
