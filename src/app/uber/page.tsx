@@ -1,0 +1,151 @@
+import { db } from "@/db";
+import { currentMonth } from "@/lib/month";
+import { formatCurrency } from "@/lib/format";
+import { MonthSwitcher } from "@/components/MonthSwitcher";
+import { UberSubNav } from "@/components/UberSubNav";
+import { RemainingDonut } from "@/components/charts/RemainingDonut";
+import { CategoryAllocationChart } from "@/components/charts/CategoryAllocationChart";
+import { quickLogUberDay } from "@/lib/uber-actions";
+import { UBER_CATEGORY_COLORS, UBER_CATEGORY_LABELS, earningMonthTotal, sameMonth } from "./uber-shared";
+
+export const dynamic = "force-dynamic";
+
+export default async function UberDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const sp = await searchParams;
+  const month = sp.month ?? currentMonth();
+
+  const [allEarnings, allExpenses] = await Promise.all([
+    db.query.uberEarnings.findMany(),
+    db.query.uberExpenses.findMany(),
+  ]);
+
+  const earningsRows = allEarnings.filter((e) => sameMonth(e.date, month));
+  const expenseRows = allExpenses.filter((e) => sameMonth(e.date, month));
+
+  const totalGanhos = earningsRows.reduce((s, e) => s + earningMonthTotal(e), 0);
+  const totalGastos = expenseRows.reduce((s, e) => s + Number(e.amount), 0);
+  const totalKmRodado = earningsRows.reduce(
+    (s, e) => s + Math.max(0, (e.kmFinal ?? 0) - (e.kmInicial ?? 0)),
+    0,
+  );
+
+  const categoryTotals = new Map<string, number>();
+  for (const e of expenseRows) {
+    categoryTotals.set(e.category, (categoryTotals.get(e.category) ?? 0) + Number(e.amount));
+  }
+  const categoryData = Array.from(categoryTotals.entries())
+    .map(([key, value]) => ({
+      name: UBER_CATEGORY_LABELS[key] ?? key,
+      value,
+      color: UBER_CATEGORY_COLORS[key] ?? "#6B7280",
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-6">
+      <MonthSwitcher month={month} basePath="/uber" />
+      <UberSubNav />
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 text-center font-semibold">Lucro líquido</h2>
+          <RemainingDonut income={totalGanhos} spent={totalGastos} />
+          <p className="mt-2 text-center text-xs text-black/50 dark:text-white/50">
+            Ganhos {formatCurrency(totalGanhos)} − Gastos {formatCurrency(totalGastos)}
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 font-semibold">Gastos por categoria</h2>
+          <CategoryAllocationChart data={categoryData} />
+        </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-3 font-semibold">Resumo do mês</h2>
+          <dl className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-black/60 dark:text-white/60">Km rodados</dt>
+              <dd>{totalKmRodado.toLocaleString("pt-BR")} km</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-black/60 dark:text-white/60">Dias rodados</dt>
+              <dd>{earningsRows.length}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-black/60 dark:text-white/60">Ganho por km</dt>
+              <dd>{totalKmRodado > 0 ? formatCurrency(totalGanhos / totalKmRodado) : "-"}</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      <section className="mt-6 rounded-xl border border-black/10 p-4 dark:border-white/10">
+        <h2 className="mb-1 font-semibold">Lançamento rápido do dia</h2>
+        <p className="mb-3 text-xs text-black/50 dark:text-white/50">
+          Registra km inicial/final do turno e/ou o abastecimento de uma vez só. Pra detalhar
+          valor da corrida, horas, viagens etc, use a tela de{" "}
+          <a href="/uber/ganhos" className="text-blue-600 hover:underline">
+            Ganhos
+          </a>
+          .
+        </p>
+        <form action={quickLogUberDay} className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Data</label>
+            <input
+              name="date"
+              type="date"
+              required
+              defaultValue={new Date().toISOString().slice(0, 10)}
+              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Km inicial</label>
+            <input
+              name="kmInicial"
+              type="number"
+              min="0"
+              className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Km final</label>
+            <input
+              name="kmFinal"
+              type="number"
+              min="0"
+              className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Km abastecimento</label>
+            <input
+              name="kmAbastecimento"
+              type="number"
+              min="0"
+              className="w-32 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Valor combustível (R$)</label>
+            <input
+              name="valorCombustivel"
+              type="number"
+              step="0.01"
+              min="0"
+              className="w-32 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
+          <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
+            Lançar
+          </button>
+        </form>
+      </section>
+    </main>
+  );
+}

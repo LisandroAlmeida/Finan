@@ -8,6 +8,7 @@ const LINKS = [
   { href: "/gastos", label: "Gastos" },
   { href: "/contas", label: "Contas" },
   { href: "/cartoes", label: "Cartões" },
+  { href: "/uber", label: "Uber" },
   { href: "/entradas", label: "Entradas" },
   { href: "/assinaturas", label: "Assinaturas" },
   { href: "/reservas", label: "Reservas" },
@@ -23,7 +24,7 @@ export function Nav() {
       <div className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto px-4 py-3">
         <span className="mr-4 shrink-0 text-xl font-bold">💰 Finance</span>
         {LINKS.map((link) => {
-          const active = pathname === link.href;
+          const active = link.href === "/" ? pathname === "/" : pathname.startsWith(link.href);
           return (
             <Link
               key={link.href}

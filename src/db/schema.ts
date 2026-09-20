@@ -21,6 +21,17 @@ export const goalKeyEnum = pgEnum("goal_key", [
   "reserva_emergencia",
   "aumento_renda",
 ]);
+export const uberExpenseCategoryEnum = pgEnum("uber_expense_category", [
+  "combustivel",
+  "manutencao",
+  "lavagem",
+  "seguro",
+  "ipva_licenciamento",
+  "pedagio_estacionamento",
+  "internet_celular",
+  "alimentacao",
+  "outros",
+]);
 
 // ---------- Categorias de gasto ----------
 export const categories = pgTable("categories", {
@@ -133,6 +144,43 @@ export const goals = pgTable("goals", {
   key: goalKeyEnum("key").notNull(),
   targetAmount: numeric("target_amount", { precision: 12, scale: 2 }).notNull(),
   month: date("month", { mode: "string" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// ---------- Uber Drive (controle de motorista de app) ----------
+// Totalmente separado das contas da casa (accounts/expenses/bills/incomes) —
+// é um controle à parte, não soma no Dashboard nem no "Restante para gastar".
+// "Ganhos Totais" e "Km rodados" não são guardados: são calculados na hora de
+// exibir, igual a planilha original fazia com fórmulas.
+export const uberEarnings = pgTable("uber_earnings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  date: date("date", { mode: "string" }).notNull(),
+  platform: text("platform").notNull().default("Uber"), // "Uber", "99" etc
+  kmInicial: integer("km_inicial"),
+  kmFinal: integer("km_final"),
+  horasTrabalhadas: numeric("horas_trabalhadas", { precision: 5, scale: 2 }),
+  viagens: integer("viagens"),
+  pontos: integer("pontos"),
+  // Nulo até você preencher os detalhes do dia (ex: logo depois do lançamento
+  // rápido do painel, que só grava km inicial/final).
+  valor: numeric("valor", { precision: 12, scale: 2 }),
+  promo: numeric("promo", { precision: 12, scale: 2 }),
+  gorjetaExtras: numeric("gorjeta_extras", { precision: 12, scale: 2 }),
+  bonus: numeric("bonus", { precision: 12, scale: 2 }),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const uberExpenses = pgTable("uber_expenses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  date: date("date", { mode: "string" }).notNull(),
+  category: uberExpenseCategoryEnum("category").notNull(),
+  description: text("description"),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method"), // livre (Pix/Crédito/Dinheiro) — não usa o enum das contas da casa
+  // Só preenchidos quando category = "combustivel"; usados pra calcular
+  // Km/L e R$/Km comparando com o abastecimento anterior.
+  kmAbastecimento: integer("km_abastecimento"),
+  litrosAbastecidos: numeric("litros_abastecidos", { precision: 8, scale: 2 }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
