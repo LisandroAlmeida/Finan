@@ -6,7 +6,12 @@ import { UberSubNav } from "@/components/UberSubNav";
 import { RemainingDonut } from "@/components/charts/RemainingDonut";
 import { CategoryAllocationChart } from "@/components/charts/CategoryAllocationChart";
 import { quickLogUberDay } from "@/lib/uber-actions";
-import { UBER_CATEGORY_COLORS, UBER_CATEGORY_LABELS, earningMonthTotal, sameMonth } from "./uber-shared";
+import {
+  UBER_CATEGORY_COLORS,
+  UBER_CATEGORY_LABELS,
+  earningDayTotal,
+  sameMonth,
+} from "./uber-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +31,13 @@ export default async function UberDashboardPage({
   const earningsRows = allEarnings.filter((e) => sameMonth(e.date, month));
   const expenseRows = allExpenses.filter((e) => sameMonth(e.date, month));
 
-  const totalGanhos = earningsRows.reduce((s, e) => s + earningMonthTotal(e), 0);
+  // Ganhos "de corrida" (valor + promo + gorjeta/extras) somados à parte do
+  // bônus — assim o bônus fica visível no dashboard em vez de escondido
+  // dentro de um único total de ganhos (a planilha também trata o bônus
+  // separado do "Total Ganhos" do Resumo Mensal).
+  const totalGanhosSemBonus = earningsRows.reduce((s, e) => s + earningDayTotal(e), 0);
+  const totalBonus = earningsRows.reduce((s, e) => s + Number(e.bonus ?? 0), 0);
+  const totalGanhos = totalGanhosSemBonus + totalBonus;
   const totalGastos = expenseRows.reduce((s, e) => s + Number(e.amount), 0);
   const totalKmRodado = earningsRows.reduce(
     (s, e) => s + Math.max(0, (e.kmFinal ?? 0) - (e.kmInicial ?? 0)),
@@ -55,7 +66,16 @@ export default async function UberDashboardPage({
           <h2 className="mb-2 text-center font-semibold">Lucro líquido</h2>
           <RemainingDonut income={totalGanhos} spent={totalGastos} />
           <p className="mt-2 text-center text-xs text-black/50 dark:text-white/50">
-            Ganhos {formatCurrency(totalGanhos)} − Gastos {formatCurrency(totalGastos)}
+            {totalBonus > 0 ? (
+              <>
+                Ganhos {formatCurrency(totalGanhosSemBonus)} + Bônus {formatCurrency(totalBonus)} − Gastos{" "}
+                {formatCurrency(totalGastos)}
+              </>
+            ) : (
+              <>
+                Ganhos {formatCurrency(totalGanhos)} − Gastos {formatCurrency(totalGastos)}
+              </>
+            )}
           </p>
         </div>
 
@@ -79,6 +99,12 @@ export default async function UberDashboardPage({
               <dt className="text-black/60 dark:text-white/60">Ganho por km</dt>
               <dd>{totalKmRodado > 0 ? formatCurrency(totalGanhos / totalKmRodado) : "-"}</dd>
             </div>
+            {totalBonus > 0 && (
+              <div className="flex justify-between">
+                <dt className="text-black/60 dark:text-white/60">Bônus do mês</dt>
+                <dd>{formatCurrency(totalBonus)}</dd>
+              </div>
+            )}
           </dl>
         </div>
       </div>
