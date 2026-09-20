@@ -67,7 +67,7 @@ export default async function UberDashboardPage({
       <MonthSwitcher month={month} basePath="/uber" />
       <UberSubNav />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
           <h2 className="mb-2 text-center font-semibold">Lucro líquido final</h2>
           <RemainingDonut income={totalGanhos} spent={totalGastos} />
@@ -120,6 +120,72 @@ export default async function UberDashboardPage({
           <h2 className="mb-2 font-semibold">Gastos por categoria</h2>
           <CategoryAllocationChart data={categoryData} />
         </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <section className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-1 font-semibold">Lançamento rápido do dia</h2>
+          <p className="mb-3 text-xs text-black/50 dark:text-white/50">
+            Registra km inicial/final do turno e/ou o abastecimento de uma vez só. Pra detalhar
+            valor da corrida, horas, viagens etc, use a tela de{" "}
+            <a href="/uber/ganhos" className="text-blue-600 hover:underline">
+              Ganhos
+            </a>
+            .
+          </p>
+          <form action={quickLogUberDay} className="flex flex-wrap items-end gap-3">
+            <div className="flex flex-col">
+              <label className="text-xs text-black/60 dark:text-white/60">Data</label>
+              <input
+                name="date"
+                type="date"
+                required
+                defaultValue={new Date().toISOString().slice(0, 10)}
+                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs text-black/60 dark:text-white/60">Km inicial</label>
+              <input
+                name="kmInicial"
+                type="number"
+                min="0"
+                className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs text-black/60 dark:text-white/60">Km final</label>
+              <input
+                name="kmFinal"
+                type="number"
+                min="0"
+                className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs text-black/60 dark:text-white/60">Km abastecimento</label>
+              <input
+                name="kmAbastecimento"
+                type="number"
+                min="0"
+                className="w-32 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs text-black/60 dark:text-white/60">Valor combustível (R$)</label>
+              <input
+                name="valorCombustivel"
+                type="number"
+                step="0.01"
+                min="0"
+                className="w-32 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              />
+            </div>
+            <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
+              Lançar
+            </button>
+          </form>
+        </section>
 
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
           <h2 className="mb-3 font-semibold">Resumo do mês</h2>
@@ -145,70 +211,6 @@ export default async function UberDashboardPage({
           </dl>
         </div>
       </div>
-
-      <section className="mt-6 rounded-xl border border-black/10 p-4 dark:border-white/10">
-        <h2 className="mb-1 font-semibold">Lançamento rápido do dia</h2>
-        <p className="mb-3 text-xs text-black/50 dark:text-white/50">
-          Registra km inicial/final do turno e/ou o abastecimento de uma vez só. Pra detalhar
-          valor da corrida, horas, viagens etc, use a tela de{" "}
-          <a href="/uber/ganhos" className="text-blue-600 hover:underline">
-            Ganhos
-          </a>
-          .
-        </p>
-        <form action={quickLogUberDay} className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Data</label>
-            <input
-              name="date"
-              type="date"
-              required
-              defaultValue={new Date().toISOString().slice(0, 10)}
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Km inicial</label>
-            <input
-              name="kmInicial"
-              type="number"
-              min="0"
-              className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Km final</label>
-            <input
-              name="kmFinal"
-              type="number"
-              min="0"
-              className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Km abastecimento</label>
-            <input
-              name="kmAbastecimento"
-              type="number"
-              min="0"
-              className="w-32 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Valor combustível (R$)</label>
-            <input
-              name="valorCombustivel"
-              type="number"
-              step="0.01"
-              min="0"
-              className="w-32 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            />
-          </div>
-          <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
-            Lançar
-          </button>
-        </form>
-      </section>
     </main>
   );
 }
