@@ -45,15 +45,47 @@ function monthsBetween(start: string, target: string) {
   return (ty - sy) * 12 + (tm - sm);
 }
 
-/** Número da parcela (1-based) de um financiamento num dado mês, ou null se
- * o mês for antes do início ou depois de quitado o financiamento. */
-export function financingInstallmentForMonth(
-  financing: { startDate: string; installmentCount: number },
+/** Número da parcela (1-based) de algo parcelado (financiamento ou despesa
+ * fixa parcelada) num dado mês, ou null se o mês for antes do início ou
+ * depois de quitado. */
+export function installmentNumberForMonth(
+  item: { startDate: string; installmentCount: number },
   month: string,
 ): number | null {
-  const n = monthsBetween(financing.startDate, month) + 1;
-  if (n < 1 || n > financing.installmentCount) return null;
+  const n = monthsBetween(item.startDate, month) + 1;
+  if (n < 1 || n > item.installmentCount) return null;
   return n;
+}
+
+/** Total original das parcelas de um financiamento (sem a entrada). */
+export function financingInstallmentsTotal(financing: {
+  installmentAmount: string;
+  installmentCount: number;
+}): number {
+  return Number(financing.installmentAmount) * financing.installmentCount;
+}
+
+/** Total projetado do carro: entrada + total original das parcelas. */
+export function financingProjectedTotal(financing: {
+  downPayment: string;
+  installmentAmount: string;
+  installmentCount: number;
+}): number {
+  return Number(financing.downPayment) + financingInstallmentsTotal(financing);
+}
+
+/** Soma quanto já foi economizado pagando parcelas por um valor menor que o
+ * original (ex: antecipação com desconto) — parcelas pagas por um valor
+ * maior ou igual ao original não entram na conta. */
+export function financingEarlyPaymentSavings(
+  financing: { installmentAmount: string },
+  payments: { amount: string }[],
+): number {
+  const original = Number(financing.installmentAmount);
+  return payments.reduce((sum, p) => {
+    const diff = original - Number(p.amount);
+    return diff > 0 ? sum + diff : sum;
+  }, 0);
 }
 
 /** Ganhos totais do dia = valor da corrida + promoção + gorjeta/extras.

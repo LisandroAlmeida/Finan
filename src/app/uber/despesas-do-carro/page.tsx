@@ -2,15 +2,17 @@ import { db } from "@/db";
 import { currentMonth } from "@/lib/month";
 import { MonthSwitcher } from "@/components/MonthSwitcher";
 import { UberSubNav } from "@/components/UberSubNav";
+import { UberFixedExpenseForm } from "@/components/UberFixedExpenseForm";
 import { UberFixedExpenseRow } from "@/components/UberFixedExpenseRow";
 import {
   createUberFixedExpense,
   updateUberFixedExpense,
   deleteUberFixedExpense,
   payUberFixedExpense,
+  updateUberExpense,
   deleteUberExpense,
 } from "@/lib/uber-actions";
-import { UBER_CATEGORY_LABELS, UBER_FIXED_EXPENSE_CATEGORIES, sameMonth } from "../uber-shared";
+import { installmentNumberForMonth, sameMonth } from "../uber-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -32,10 +34,19 @@ export default async function UberDespesasDoCarroPage({
     return a.description.localeCompare(b.description);
   });
 
-  const paymentByFixedExpenseId = new Map<string, { id: string; date: string; amount: string }>();
+  const paymentByFixedExpenseId = new Map<
+    string,
+    { id: string; date: string; amount: string; category: string; description: string | null }
+  >();
   for (const e of allExpenses) {
     if (e.fixedExpenseId && sameMonth(e.date, month)) {
-      paymentByFixedExpenseId.set(e.fixedExpenseId, { id: e.id, date: e.date, amount: e.amount });
+      paymentByFixedExpenseId.set(e.fixedExpenseId, {
+        id: e.id,
+        date: e.date,
+        amount: e.amount,
+        category: e.category,
+        description: e.description,
+      });
     }
   }
 
@@ -47,49 +58,12 @@ export default async function UberDespesasDoCarroPage({
       <section className="rounded-xl border border-black/10 p-4 dark:border-white/10">
         <h2 className="mb-1 font-semibold">Nova despesa fixa</h2>
         <p className="mb-3 text-xs text-black/50 dark:text-white/50">
-          Cadastre revisão, seguro, IPVA e outras despesas que se repetem todo mês. Elas aparecem
-          aqui pra você marcar como pago mês a mês — ao marcar, o gasto já entra em Lançamentos e
-          nos totais do Dashboard.
+          Cadastre revisão, seguro, IPVA e outras despesas do carro. Deixe &quot;Parcelada&quot;
+          desmarcado pra algo que se repete todo mês (ex: seguro), ou marque e informe o número de
+          parcelas pra algo com fim definido (ex: revisão em 10x). Ao marcar como pago, o gasto
+          entra nos totais do Resumo/Dashboard, mas não aparece na lista de Lançamentos.
         </p>
-        <form action={createUberFixedExpense} className="flex flex-wrap items-end gap-3">
-          <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Descrição</label>
-            <input
-              name="description"
-              required
-              placeholder="Seguro do carro, Revisão..."
-              className="w-44 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            />
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Categoria</label>
-            <select
-              name="category"
-              defaultValue="manutencao"
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            >
-              {UBER_FIXED_EXPENSE_CATEGORIES.map((c) => (
-                <option key={c} value={c}>
-                  {UBER_CATEGORY_LABELS[c]}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Valor mensal (R$)</label>
-            <input
-              name="amount"
-              type="number"
-              step="0.01"
-              min="0"
-              required
-              className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
-            />
-          </div>
-          <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
-            Adicionar
-          </button>
-        </form>
+        <UberFixedExpenseForm createUberFixedExpense={createUberFixedExpense} />
       </section>
 
       <div className="mt-4 overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
@@ -98,6 +72,7 @@ export default async function UberDespesasDoCarroPage({
             <tr>
               <th className="px-2 py-2">Descrição</th>
               <th className="px-2 py-2">Categoria</th>
+              <th className="px-2 py-2">Parcela</th>
               <th className="px-2 py-2">Valor</th>
               <th className="px-2 py-2">Status do mês</th>
               <th className="px-2 py-2" />
@@ -108,17 +83,26 @@ export default async function UberDespesasDoCarroPage({
               <UberFixedExpenseRow
                 key={fe.id}
                 fixedExpense={fe}
+                installmentNumber={
+                  fe.installmentCount && fe.installmentStartDate
+                    ? installmentNumberForMonth(
+                        { startDate: fe.installmentStartDate, installmentCount: fe.installmentCount },
+                        month,
+                      )
+                    : null
+                }
                 payment={paymentByFixedExpenseId.get(fe.id) ?? null}
                 month={month}
                 updateUberFixedExpense={updateUberFixedExpense}
                 deleteUberFixedExpense={deleteUberFixedExpense}
                 payUberFixedExpense={payUberFixedExpense}
+                updateUberExpense={updateUberExpense}
                 deleteUberExpense={deleteUberExpense}
               />
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-2 py-6 text-center text-black/50 dark:text-white/50">
+                <td colSpan={6} className="px-2 py-6 text-center text-black/50 dark:text-white/50">
                   Nenhuma despesa fixa cadastrada ainda.
                 </td>
               </tr>

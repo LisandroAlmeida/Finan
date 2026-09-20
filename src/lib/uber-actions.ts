@@ -182,6 +182,15 @@ export async function quickLogUberDay(formData: FormData) {
 }
 
 // ---------- Despesas fixas do carro (revisão, seguro, IPVA...) ----------
+// "Parcelada" (ex: revisão em 10x) quando installmentCount+installmentStartDate
+// vêm preenchidos; senão é recorrente indefinida (ex: seguro mensal).
+function parseFixedExpenseInstallment(formData: FormData) {
+  const installmentCount = toIntOrNull(formData.get("installmentCount"));
+  const installmentStartDate = String(formData.get("installmentStartDate") ?? "").trim() || null;
+  if (!installmentCount || !installmentStartDate) return { installmentCount: null, installmentStartDate: null };
+  return { installmentCount, installmentStartDate };
+}
+
 export async function createUberFixedExpense(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
   const amount = Number(formData.get("amount"));
@@ -191,6 +200,7 @@ export async function createUberFixedExpense(formData: FormData) {
     description,
     category: parseUberCategory(formData),
     amount: amount.toFixed(2),
+    ...parseFixedExpenseInstallment(formData),
   });
 
   revalidateUber();
@@ -211,6 +221,7 @@ export async function updateUberFixedExpense(formData: FormData) {
       category: parseUberCategory(formData),
       amount: amount.toFixed(2),
       active: formData.get("active") === "on",
+      ...parseFixedExpenseInstallment(formData),
     })
     .where(eq(uberFixedExpenses.id, id));
 
@@ -224,13 +235,16 @@ export async function deleteUberFixedExpense(id: string) {
 
 /** Marca uma despesa fixa como paga num mês: cria o gasto de verdade em
  * uber_expenses (com data = 1º dia do mês selecionado), vinculado de volta
- * pela fixedExpenseId. */
+ * pela fixedExpenseId. Não aparece na lista de Lançamentos (fica só nas
+ * telas de Despesas do carro/Resumo/Dashboard), mas entra nos totais
+ * normalmente. */
 export async function payUberFixedExpense(formData: FormData) {
   const fixedExpenseId = String(formData.get("fixedExpenseId") ?? "");
   const month = String(formData.get("month") ?? "");
   const description = String(formData.get("description") ?? "").trim();
   const category = parseUberCategory(formData);
   const amount = Number(formData.get("amount"));
+  const parcelaNumero = toIntOrNull(formData.get("parcelaNumero"));
   if (!fixedExpenseId || !month || Number.isNaN(amount)) {
     throw new Error("Despesa fixa, mês e valor são obrigatórios.");
   }
@@ -241,14 +255,16 @@ export async function payUberFixedExpense(formData: FormData) {
     description: description || null,
     amount: amount.toFixed(2),
     fixedExpenseId,
+    parcelaNumero,
   });
 
   revalidateUber();
 }
 
-// ---------- Financiamento do veículo ----------
+// ---------- Financiamento do carro ----------
 export async function createUberFinancing(formData: FormData) {
   const description = String(formData.get("description") ?? "").trim();
+  const downPayment = toNumOrNull(formData.get("downPayment")) ?? "0.00";
   const installmentAmount = Number(formData.get("installmentAmount"));
   const installmentCount = toIntOrNull(formData.get("installmentCount"));
   const startDate = String(formData.get("startDate") ?? "");
@@ -258,6 +274,7 @@ export async function createUberFinancing(formData: FormData) {
 
   await db.insert(uberFinancings).values({
     description,
+    downPayment,
     installmentAmount: installmentAmount.toFixed(2),
     installmentCount,
     startDate,
@@ -269,6 +286,7 @@ export async function createUberFinancing(formData: FormData) {
 export async function updateUberFinancing(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const description = String(formData.get("description") ?? "").trim();
+  const downPayment = toNumOrNull(formData.get("downPayment")) ?? "0.00";
   const installmentAmount = Number(formData.get("installmentAmount"));
   const installmentCount = toIntOrNull(formData.get("installmentCount"));
   const startDate = String(formData.get("startDate") ?? "");
@@ -280,6 +298,7 @@ export async function updateUberFinancing(formData: FormData) {
     .update(uberFinancings)
     .set({
       description,
+      downPayment,
       installmentAmount: installmentAmount.toFixed(2),
       installmentCount,
       startDate,
@@ -296,7 +315,8 @@ export async function deleteUberFinancing(id: string) {
 }
 
 /** Marca a parcela de um mês como paga: cria o gasto (categoria
- * "financiamento") vinculado de volta pela financingId + parcelaNumero. */
+ * "financiamento") vinculado de volta pela financingId + parcelaNumero. Não
+ * aparece na lista de Lançamentos, mas entra nos totais normalmente. */
 export async function payUberFinancingInstallment(formData: FormData) {
   const financingId = String(formData.get("financingId") ?? "");
   const month = String(formData.get("month") ?? "");

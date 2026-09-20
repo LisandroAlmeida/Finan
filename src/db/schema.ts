@@ -201,6 +201,11 @@ export const uberFixedExpenses = pgTable("uber_fixed_expenses", {
   category: uberExpenseCategoryEnum("category").notNull(),
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
   active: boolean("active").notNull().default(true),
+  // Quando preenchidos, a despesa é parcelada (ex: revisão em 10x) em vez de
+  // recorrente indefinida (ex: seguro mensal): o número da parcela do mês é
+  // calculado a partir de installmentStartDate, igual ao financiamento.
+  installmentCount: integer("installment_count"),
+  installmentStartDate: date("installment_start_date", { mode: "string" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -211,6 +216,9 @@ export const uberFixedExpenses = pgTable("uber_fixed_expenses", {
 export const uberFinancings = pgTable("uber_financings", {
   id: uuid("id").primaryKey().defaultRandom(),
   description: text("description").notNull(),
+  // Valor de entrada pago à vista — soma com as parcelas pro "total
+  // projetado do carro".
+  downPayment: numeric("down_payment", { precision: 12, scale: 2 }).notNull().default("0"),
   installmentAmount: numeric("installment_amount", { precision: 12, scale: 2 }).notNull(),
   installmentCount: integer("installment_count").notNull(),
   startDate: date("start_date", { mode: "string" }).notNull(),

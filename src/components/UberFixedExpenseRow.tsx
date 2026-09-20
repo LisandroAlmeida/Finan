@@ -11,33 +11,47 @@ type FixedExpense = {
   category: string;
   amount: string;
   active: boolean;
+  installmentCount: number | null;
+  installmentStartDate: string | null;
 };
 
 type Payment = {
   id: string;
   date: string;
   amount: string;
+  category: string;
+  description: string | null;
 };
 
 export function UberFixedExpenseRow({
   fixedExpense,
+  installmentNumber,
   payment,
   month,
   updateUberFixedExpense,
   deleteUberFixedExpense,
   payUberFixedExpense,
+  updateUberExpense,
   deleteUberExpense,
 }: {
   fixedExpense: FixedExpense;
+  /** null quando não é parcelada, ou quando é parcelada mas o mês está fora
+   * do intervalo (ainda não começou ou já quitada). */
+  installmentNumber: number | null;
   payment: Payment | null;
   month: string;
   updateUberFixedExpense: (formData: FormData) => Promise<void>;
   deleteUberFixedExpense: (id: string) => Promise<void>;
   payUberFixedExpense: (formData: FormData) => Promise<void>;
+  updateUberExpense: (formData: FormData) => Promise<void>;
   deleteUberExpense: (id: string) => Promise<void>;
 }) {
   const [editing, setEditing] = useState(false);
+  const [parcelado, setParcelado] = useState(!!fixedExpense.installmentCount);
+  const [editingPayment, setEditingPayment] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  const isParcelada = !!fixedExpense.installmentCount;
 
   const handleSave = (formData: FormData) => {
     startTransition(async () => {
@@ -57,9 +71,15 @@ export function UberFixedExpenseRow({
       const fd = new FormData();
       fd.set("fixedExpenseId", fixedExpense.id);
       fd.set("month", month);
-      fd.set("description", fixedExpense.description);
+      fd.set(
+        "description",
+        isParcelada && installmentNumber
+          ? `${fixedExpense.description} (${installmentNumber}/${fixedExpense.installmentCount})`
+          : fixedExpense.description,
+      );
       fd.set("category", fixedExpense.category);
       fd.set("amount", fixedExpense.amount);
+      if (installmentNumber) fd.set("parcelaNumero", String(installmentNumber));
       await payUberFixedExpense(fd);
     });
   };
@@ -71,10 +91,17 @@ export function UberFixedExpenseRow({
     });
   };
 
+  const handleSavePayment = (formData: FormData) => {
+    startTransition(async () => {
+      await updateUberExpense(formData);
+      setEditingPayment(false);
+    });
+  };
+
   if (editing) {
     return (
       <tr className="border-t border-black/10 dark:border-white/10">
-        <td colSpan={5} className="px-3 py-3">
+        <td colSpan={6} className="px-3 py-3">
           <form action={handleSave} className="flex flex-wrap items-end gap-3">
             <input type="hidden" name="id" value={fixedExpense.id} />
             <div className="flex flex-col">
@@ -116,6 +143,39 @@ export function UberFixedExpenseRow({
               <input type="checkbox" name="active" defaultChecked={fixedExpense.active} />
               Ativa
             </label>
+            <label className="flex items-center gap-1.5 text-xs text-black/60 dark:text-white/60">
+              <input
+                type="checkbox"
+                checked={parcelado}
+                onChange={(e) => setParcelado(e.target.checked)}
+              />
+              Parcelada
+            </label>
+            {parcelado && (
+              <>
+                <div className="flex flex-col">
+                  <label className="text-xs text-black/60 dark:text-white/60">Nº de parcelas</label>
+                  <input
+                    name="installmentCount"
+                    type="number"
+                    min="1"
+                    required
+                    defaultValue={fixedExpense.installmentCount ?? ""}
+                    className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <label className="text-xs text-black/60 dark:text-white/60">Início (1ª parcela)</label>
+                  <input
+                    name="installmentStartDate"
+                    type="date"
+                    required
+                    defaultValue={fixedExpense.installmentStartDate ?? ""}
+                    className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                  />
+                </div>
+              </>
+            )}
             <div className="flex gap-2">
               <button
                 type="submit"
@@ -145,23 +205,71 @@ export function UberFixedExpenseRow({
         {!fixedExpense.active && <span className="ml-1 text-xs">(inativa)</span>}
       </td>
       <td className="px-2 py-2">{UBER_CATEGORY_LABELS[fixedExpense.category] ?? fixedExpense.category}</td>
+      <td className="px-2 py-2">
+        {isParcelada ? `${installmentNumber ?? "-"}/${fixedExpense.installmentCount}` : "-"}
+      </td>
       <td className="px-2 py-2">{formatCurrency(fixedExpense.amount)}</td>
       <td className="px-2 py-2">
         {payment ? (
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-emerald-600/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400">
-              Pago em {formatDate(payment.date)}
-            </span>
-            <button
-              type="button"
-              onClick={handleUndoPay}
-              disabled={pending}
-              className="text-xs text-red-600 hover:underline disabled:opacity-50"
-            >
-              desfazer
-            </button>
-          </div>
-        ) : fixedExpense.active ? (
+          editingPayment ? (
+            <form action={handleSavePayment} className="flex flex-wrap items-end gap-2">
+              <input type="hidden" name="id" value={payment.id} />
+              <input type="hidden" name="category" value={payment.category} />
+              <input type="hidden" name="description" value={payment.description ?? ""} />
+              <input
+                name="date"
+                type="date"
+                required
+                defaultValue={payment.date}
+                className="rounded-md border border-black/15 px-2 py-1 text-xs dark:border-white/20 dark:bg-transparent"
+              />
+              <input
+                name="amount"
+                type="number"
+                step="0.01"
+                min="0"
+                required
+                defaultValue={payment.amount}
+                className="w-24 rounded-md border border-black/15 px-2 py-1 text-xs dark:border-white/20 dark:bg-transparent"
+              />
+              <button
+                type="submit"
+                disabled={pending}
+                className="rounded-md bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Salvar
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingPayment(false)}
+                className="rounded-md border border-black/15 px-2 py-1 text-xs dark:border-white/20"
+              >
+                Cancelar
+              </button>
+            </form>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-emerald-600/15 px-2 py-0.5 text-xs text-emerald-700 dark:text-emerald-400">
+                Pago em {formatDate(payment.date)} — {formatCurrency(payment.amount)}
+              </span>
+              <button
+                type="button"
+                onClick={() => setEditingPayment(true)}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                editar
+              </button>
+              <button
+                type="button"
+                onClick={handleUndoPay}
+                disabled={pending}
+                className="text-xs text-red-600 hover:underline disabled:opacity-50"
+              >
+                desfazer
+              </button>
+            </div>
+          )
+        ) : fixedExpense.active && (!isParcelada || installmentNumber) ? (
           <button
             type="button"
             onClick={handlePay}
@@ -170,6 +278,10 @@ export function UberFixedExpenseRow({
           >
             Pendente — marcar como pago
           </button>
+        ) : isParcelada ? (
+          <span className="text-xs text-black/40 dark:text-white/40">
+            {fixedExpense.active ? "fora do período" : "quitada"}
+          </span>
         ) : (
           <span className="text-xs text-black/40 dark:text-white/40">-</span>
         )}
@@ -185,7 +297,7 @@ export function UberFixedExpenseRow({
           </button>
           <ConfirmButton
             label="excluir"
-            confirmMessage="Excluir essa despesa fixa? Os pagamentos já lançados continuam em Lançamentos. Essa ação não pode ser desfeita."
+            confirmMessage="Excluir essa despesa fixa? Os pagamentos já lançados continuam contando no Resumo/Dashboard. Essa ação não pode ser desfeita."
             pending={pending}
             onConfirm={handleDelete}
             className="text-xs text-red-600 hover:underline"

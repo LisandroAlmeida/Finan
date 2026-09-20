@@ -18,8 +18,20 @@ export default async function UberLancamentosPage({
   const month = sp.month ?? currentMonth();
 
   const allExpenses = await db.query.uberExpenses.findMany();
+  // Pagamentos gerados por "marcar como pago" em Despesas do carro/
+  // Financiamento (fixedExpenseId/financingId preenchidos) não aparecem
+  // aqui — só nas próprias telas — mas continuam entrando nos totais de
+  // Resumo/Dashboard normalmente, porque aquelas telas somam todos os
+  // uber_expenses sem esse filtro. Aqui fica só o dia a dia (lavagem,
+  // pedágio, alimentação etc.) lançado manualmente.
   const rows = allExpenses
-    .filter((e) => e.category !== "combustivel" && sameMonth(e.date, month))
+    .filter(
+      (e) =>
+        e.category !== "combustivel" &&
+        !e.fixedExpenseId &&
+        !e.financingId &&
+        sameMonth(e.date, month),
+    )
     .sort((a, b) => b.date.localeCompare(a.date));
 
   const total = rows.reduce((s, e) => s + Number(e.amount), 0);

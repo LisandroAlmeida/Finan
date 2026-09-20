@@ -13,6 +13,23 @@ _(nada por enquanto — itens novos entram aqui conforme surgem)_
 
 ## Concluído recentemente
 
+- **Uber Drive — Financiamento/Despesas do carro repensados (fase 3)**, pra
+  bater com o jeito que a planilha original organizava as coisas:
+  - `Lançamentos` agora é só o dia a dia lançado manualmente (lavagem,
+    pedágio, alimentação...). Pagamentos gerados por "marcar como pago" em
+    Despesas do carro/Financiamento não aparecem mais nessa lista — mas
+    continuam entrando nos totais de Resumo/Dashboard normalmente.
+  - `Despesas do carro` ganhou parcelamento opcional: além do modo recorrente
+    indefinido (ex: seguro mensal), dá pra cadastrar algo com nº fixo de
+    parcelas (ex: revisão em 10x), que aparece com o número da parcela do mês
+    calculado sozinho, igual ao Financiamento.
+  - `Financiamento` virou uma tela dedicada ao financiamento do carro: mostra
+    Entrada, Qtd. de parcelas, Valor original da parcela, Total original das
+    parcelas e Total projetado do carro (entrada + parcelas), além de quantas
+    parcelas já foram pagas e quanto foi economizado pagando antecipado (soma
+    da diferença entre o valor original da parcela e o valor realmente pago).
+  - Pagamentos de Despesas do carro/Financiamento agora podem ser corrigidos
+    (data/valor) direto na própria tela, sem precisar passar por Lançamentos.
 - **Uber Drive — abas restantes (fase 2)**: submenu completo agora com
   Despesas do carro, Financiamento e Resumo, além de Dashboard/Ganhos/
   Combustível/Lançamentos.
