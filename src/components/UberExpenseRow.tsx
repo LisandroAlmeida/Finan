@@ -39,6 +39,17 @@ export function UberExpenseRow({
     });
   };
 
+  // Algumas categorias (ex: "financiamento") ficam de fora da lista normal
+  // porque só são criadas por telas próprias — mas um lançamento já
+  // existente pode ter uma dessas categorias, e o <select> nativo, ao não
+  // achar a option correspondente, cai silenciosamente na primeira da
+  // lista. Sem isso, só abrir e salvar a edição (mesmo sem mexer no campo
+  // categoria) trocaria a categoria de verdade. Por isso a categoria atual
+  // sempre entra nas opções, mesmo que não apareça na lista de criação.
+  const categoryOptions = UBER_LANCAMENTO_CATEGORIES.includes(expense.category)
+    ? UBER_LANCAMENTO_CATEGORIES
+    : [expense.category, ...UBER_LANCAMENTO_CATEGORIES];
+
   if (editing) {
     return (
       <tr className="border-t border-black/10 dark:border-white/10">
@@ -62,7 +73,7 @@ export function UberExpenseRow({
                 defaultValue={expense.category}
                 className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
               >
-                {UBER_LANCAMENTO_CATEGORIES.map((c) => (
+                {categoryOptions.map((c) => (
                   <option key={c} value={c}>
                     {UBER_CATEGORY_LABELS[c]}
                   </option>
