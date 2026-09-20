@@ -8,6 +8,9 @@ const LINKS = [
   { href: "/uber/ganhos", label: "Ganhos" },
   { href: "/uber/combustivel", label: "Combustível" },
   { href: "/uber/lancamentos", label: "Lançamentos" },
+  { href: "/uber/despesas-do-carro", label: "Despesas do carro" },
+  { href: "/uber/financiamento", label: "Financiamento" },
+  { href: "/uber/resumo", label: "Resumo" },
 ];
 
 export function UberSubNav() {

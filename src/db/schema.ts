@@ -27,6 +27,7 @@ export const uberExpenseCategoryEnum = pgEnum("uber_expense_category", [
   "lavagem",
   "seguro",
   "ipva_licenciamento",
+  "financiamento",
   "pedagio_estacionamento",
   "internet_celular",
   "alimentacao",
@@ -181,6 +182,39 @@ export const uberExpenses = pgTable("uber_expenses", {
   // Km/L e R$/Km comparando com o abastecimento anterior.
   kmAbastecimento: integer("km_abastecimento"),
   litrosAbastecidos: numeric("litros_abastecidos", { precision: 8, scale: 2 }),
+  // Preenchidos só quando esse gasto foi gerado por um "marcar como pago" em
+  // Despesas do carro ou Financiamento — sem FK de verdade (é só um
+  // vínculo de aplicação) pra não travar a exclusão da despesa fixa/
+  // financiamento original.
+  fixedExpenseId: uuid("fixed_expense_id"),
+  financingId: uuid("financing_id"),
+  parcelaNumero: integer("parcela_numero"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Despesas fixas recorrentes do carro (revisão, seguro, IPVA...): a
+// definição fica aqui, e cada mês pago vira uma linha de verdade em
+// uber_expenses (via fixedExpenseId) — assim entra nos totais normalmente.
+export const uberFixedExpenses = pgTable("uber_fixed_expenses", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  description: text("description").notNull(),
+  category: uberExpenseCategoryEnum("category").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Financiamento do veículo: parcelas fixas de valor igual, a partir de uma
+// data de início. O número da parcela de um mês é calculado (não
+// guardado) a partir de dataInicio; "marcar como pago" gera o gasto em
+// uber_expenses (via financingId + parcelaNumero).
+export const uberFinancings = pgTable("uber_financings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  description: text("description").notNull(),
+  installmentAmount: numeric("installment_amount", { precision: 12, scale: 2 }).notNull(),
+  installmentCount: integer("installment_count").notNull(),
+  startDate: date("start_date", { mode: "string" }).notNull(),
+  active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

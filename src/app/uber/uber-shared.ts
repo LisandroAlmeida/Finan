@@ -4,6 +4,7 @@ export const UBER_CATEGORY_LABELS: Record<string, string> = {
   lavagem: "Lavagem",
   seguro: "Seguro do veículo",
   ipva_licenciamento: "IPVA/Licenciamento",
+  financiamento: "Financiamento",
   pedagio_estacionamento: "Pedágio/Estacionamento",
   internet_celular: "Internet/Celular",
   alimentacao: "Alimentação",
@@ -16,6 +17,7 @@ export const UBER_CATEGORY_COLORS: Record<string, string> = {
   lavagem: "#0891B2",
   seguro: "#7C3AED",
   ipva_licenciamento: "#334155",
+  financiamento: "#0D9488",
   pedagio_estacionamento: "#65A30D",
   internet_celular: "#2563EB",
   alimentacao: "#DB2777",
@@ -23,10 +25,36 @@ export const UBER_CATEGORY_COLORS: Record<string, string> = {
 };
 
 // Categorias que aparecem no seletor de "Lançamentos" — combustível fica de
-// fora porque tem tela própria (com km/litros).
+// fora porque tem tela própria (com km/litros), e financiamento fica de
+// fora porque só é lançado pela tela de Financiamento (marcar como pago).
 export const UBER_LANCAMENTO_CATEGORIES = Object.keys(UBER_CATEGORY_LABELS).filter(
-  (c) => c !== "combustivel",
+  (c) => c !== "combustivel" && c !== "financiamento",
 );
+
+// Categorias disponíveis pra cadastrar uma despesa fixa do carro (revisão,
+// seguro, IPVA...) — sem combustível (tela própria) nem financiamento
+// (tem sua própria tela com contagem de parcelas).
+export const UBER_FIXED_EXPENSE_CATEGORIES = Object.keys(UBER_CATEGORY_LABELS).filter(
+  (c) => c !== "combustivel" && c !== "financiamento",
+);
+
+/** Diferença em meses inteiros entre duas datas "YYYY-MM..." (start <= target). */
+function monthsBetween(start: string, target: string) {
+  const [sy, sm] = start.slice(0, 7).split("-").map(Number);
+  const [ty, tm] = target.slice(0, 7).split("-").map(Number);
+  return (ty - sy) * 12 + (tm - sm);
+}
+
+/** Número da parcela (1-based) de um financiamento num dado mês, ou null se
+ * o mês for antes do início ou depois de quitado o financiamento. */
+export function financingInstallmentForMonth(
+  financing: { startDate: string; installmentCount: number },
+  month: string,
+): number | null {
+  const n = monthsBetween(financing.startDate, month) + 1;
+  if (n < 1 || n > financing.installmentCount) return null;
+  return n;
+}
 
 /** Ganhos totais do dia = valor da corrida + promoção + gorjeta/extras.
  * Bônus fica de fora do total diário (igual a planilha original), mas entra

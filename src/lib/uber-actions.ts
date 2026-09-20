@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { uberEarnings, uberExpenses } from "@/db/schema";
+import { uberEarnings, uberExpenses, uberFixedExpenses, uberFinancings } from "@/db/schema";
 
 const UBER_CATEGORIES = [
   "combustivel",
@@ -11,6 +11,7 @@ const UBER_CATEGORIES = [
   "lavagem",
   "seguro",
   "ipva_licenciamento",
+  "financiamento",
   "pedagio_estacionamento",
   "internet_celular",
   "alimentacao",
@@ -39,6 +40,9 @@ function revalidateUber() {
   revalidatePath("/uber/ganhos");
   revalidatePath("/uber/lancamentos");
   revalidatePath("/uber/combustivel");
+  revalidatePath("/uber/despesas-do-carro");
+  revalidatePath("/uber/financiamento");
+  revalidatePath("/uber/resumo");
 }
 
 // ---------- Ganhos ----------
@@ -173,6 +177,144 @@ export async function quickLogUberDay(formData: FormData) {
       kmAbastecimento,
     });
   }
+
+  revalidateUber();
+}
+
+// ---------- Despesas fixas do carro (revisão, seguro, IPVA...) ----------
+export async function createUberFixedExpense(formData: FormData) {
+  const description = String(formData.get("description") ?? "").trim();
+  const amount = Number(formData.get("amount"));
+  if (!description || Number.isNaN(amount)) throw new Error("Descrição e valor são obrigatórios.");
+
+  await db.insert(uberFixedExpenses).values({
+    description,
+    category: parseUberCategory(formData),
+    amount: amount.toFixed(2),
+  });
+
+  revalidateUber();
+}
+
+export async function updateUberFixedExpense(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const description = String(formData.get("description") ?? "").trim();
+  const amount = Number(formData.get("amount"));
+  if (!id || !description || Number.isNaN(amount)) {
+    throw new Error("Registro, descrição e valor são obrigatórios.");
+  }
+
+  await db
+    .update(uberFixedExpenses)
+    .set({
+      description,
+      category: parseUberCategory(formData),
+      amount: amount.toFixed(2),
+      active: formData.get("active") === "on",
+    })
+    .where(eq(uberFixedExpenses.id, id));
+
+  revalidateUber();
+}
+
+export async function deleteUberFixedExpense(id: string) {
+  await db.delete(uberFixedExpenses).where(eq(uberFixedExpenses.id, id));
+  revalidateUber();
+}
+
+/** Marca uma despesa fixa como paga num mês: cria o gasto de verdade em
+ * uber_expenses (com data = 1º dia do mês selecionado), vinculado de volta
+ * pela fixedExpenseId. */
+export async function payUberFixedExpense(formData: FormData) {
+  const fixedExpenseId = String(formData.get("fixedExpenseId") ?? "");
+  const month = String(formData.get("month") ?? "");
+  const description = String(formData.get("description") ?? "").trim();
+  const category = parseUberCategory(formData);
+  const amount = Number(formData.get("amount"));
+  if (!fixedExpenseId || !month || Number.isNaN(amount)) {
+    throw new Error("Despesa fixa, mês e valor são obrigatórios.");
+  }
+
+  await db.insert(uberExpenses).values({
+    date: month,
+    category,
+    description: description || null,
+    amount: amount.toFixed(2),
+    fixedExpenseId,
+  });
+
+  revalidateUber();
+}
+
+// ---------- Financiamento do veículo ----------
+export async function createUberFinancing(formData: FormData) {
+  const description = String(formData.get("description") ?? "").trim();
+  const installmentAmount = Number(formData.get("installmentAmount"));
+  const installmentCount = toIntOrNull(formData.get("installmentCount"));
+  const startDate = String(formData.get("startDate") ?? "");
+  if (!description || Number.isNaN(installmentAmount) || !installmentCount || !startDate) {
+    throw new Error("Descrição, valor da parcela, nº de parcelas e data de início são obrigatórios.");
+  }
+
+  await db.insert(uberFinancings).values({
+    description,
+    installmentAmount: installmentAmount.toFixed(2),
+    installmentCount,
+    startDate,
+  });
+
+  revalidateUber();
+}
+
+export async function updateUberFinancing(formData: FormData) {
+  const id = String(formData.get("id") ?? "");
+  const description = String(formData.get("description") ?? "").trim();
+  const installmentAmount = Number(formData.get("installmentAmount"));
+  const installmentCount = toIntOrNull(formData.get("installmentCount"));
+  const startDate = String(formData.get("startDate") ?? "");
+  if (!id || !description || Number.isNaN(installmentAmount) || !installmentCount || !startDate) {
+    throw new Error("Registro, descrição, valor da parcela, nº de parcelas e data de início são obrigatórios.");
+  }
+
+  await db
+    .update(uberFinancings)
+    .set({
+      description,
+      installmentAmount: installmentAmount.toFixed(2),
+      installmentCount,
+      startDate,
+      active: formData.get("active") === "on",
+    })
+    .where(eq(uberFinancings.id, id));
+
+  revalidateUber();
+}
+
+export async function deleteUberFinancing(id: string) {
+  await db.delete(uberFinancings).where(eq(uberFinancings.id, id));
+  revalidateUber();
+}
+
+/** Marca a parcela de um mês como paga: cria o gasto (categoria
+ * "financiamento") vinculado de volta pela financingId + parcelaNumero. */
+export async function payUberFinancingInstallment(formData: FormData) {
+  const financingId = String(formData.get("financingId") ?? "");
+  const month = String(formData.get("month") ?? "");
+  const description = String(formData.get("description") ?? "").trim();
+  const amount = Number(formData.get("amount"));
+  const parcelaNumero = toIntOrNull(formData.get("parcelaNumero"));
+  if (!financingId || !month || Number.isNaN(amount) || !parcelaNumero) {
+    throw new Error("Financiamento, mês e valor são obrigatórios.");
+  }
+
+  await db.insert(uberExpenses).values({
+    date: month,
+    category: "financiamento",
+    description: description || null,
+    amount: amount.toFixed(2),
+    financingId,
+    parcelaNumero,
+  });
 
   revalidateUber();
 }
