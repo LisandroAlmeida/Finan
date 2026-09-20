@@ -2,7 +2,7 @@ import Link from "next/link";
 import { db } from "@/db";
 import { formatCurrency } from "@/lib/format";
 import { UberSubNav } from "@/components/UberSubNav";
-import { UBER_CATEGORY_LABELS, earningMonthTotal } from "../uber-shared";
+import { UBER_CATEGORY_LABELS, earningMonthTotal, splitCarExpenses } from "../uber-shared";
 
 export const dynamic = "force-dynamic";
 
@@ -56,12 +56,14 @@ export default async function UberResumoPage({
 
     const totalGastos = expenseRows.reduce((s, e) => s + Number(e.amount), 0);
     const totalGanhos = earningsRows.reduce((s, e) => s + earningMonthTotal(e), 0);
+    const { operational: totalGastosOperacionais } = splitCarExpenses(expenseRows);
 
     return {
       label: MESES_ABREV[i],
       categoryTotals,
       totalGastos,
       totalGanhos,
+      lucroOperacional: totalGanhos - totalGastosOperacionais,
       lucroLiquido: totalGanhos - totalGastos,
     };
   });
@@ -73,6 +75,7 @@ export default async function UberResumoPage({
     }, {}),
     totalGastos: rows.reduce((s, r) => s + r.totalGastos, 0),
     totalGanhos: rows.reduce((s, r) => s + r.totalGanhos, 0),
+    lucroOperacional: rows.reduce((s, r) => s + r.lucroOperacional, 0),
     lucroLiquido: rows.reduce((s, r) => s + r.lucroLiquido, 0),
   };
 
@@ -100,8 +103,9 @@ export default async function UberResumoPage({
       <UberSubNav />
 
       <p className="mb-3 text-xs text-black/50 dark:text-white/50">
-        Comparativo mês a mês do ano de {year}. &quot;Total Ganhos&quot; inclui bônus (igual ao
-        Lucro líquido do Dashboard).
+        Comparativo mês a mês do ano de {year}. &quot;Total Ganhos&quot; inclui bônus. &quot;Lucro
+        Operacional&quot; é só o resultado de rodar (sem financiamento/seguro, que são custo fixo
+        do carro); &quot;Lucro Líquido&quot; é o final, com tudo incluído.
       </p>
 
       <div className="overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
@@ -116,6 +120,7 @@ export default async function UberResumoPage({
               ))}
               <th className="px-2 py-2">Total Gastos</th>
               <th className="px-2 py-2">Total Ganhos</th>
+              <th className="px-2 py-2">Lucro Operacional</th>
               <th className="px-2 py-2">Lucro Líquido</th>
             </tr>
           </thead>
@@ -130,6 +135,9 @@ export default async function UberResumoPage({
                 ))}
                 <td className="px-2 py-2">{money(r.totalGastos)}</td>
                 <td className="px-2 py-2">{money(r.totalGanhos)}</td>
+                <td className={`px-2 py-2 ${r.lucroOperacional < 0 ? "text-red-600" : ""}`}>
+                  {r.totalGastos === 0 && r.totalGanhos === 0 ? "-" : formatCurrency(r.lucroOperacional)}
+                </td>
                 <td className={`px-2 py-2 ${r.lucroLiquido < 0 ? "text-red-600" : ""}`}>
                   {r.totalGastos === 0 && r.totalGanhos === 0 ? "-" : formatCurrency(r.lucroLiquido)}
                 </td>
@@ -146,6 +154,9 @@ export default async function UberResumoPage({
               ))}
               <td className="px-2 py-2">{money(anual.totalGastos)}</td>
               <td className="px-2 py-2">{money(anual.totalGanhos)}</td>
+              <td className={`px-2 py-2 ${anual.lucroOperacional < 0 ? "text-red-600" : ""}`}>
+                {formatCurrency(anual.lucroOperacional)}
+              </td>
               <td className={`px-2 py-2 ${anual.lucroLiquido < 0 ? "text-red-600" : ""}`}>
                 {formatCurrency(anual.lucroLiquido)}
               </td>

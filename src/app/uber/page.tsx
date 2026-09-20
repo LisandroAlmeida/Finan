@@ -11,6 +11,7 @@ import {
   UBER_CATEGORY_LABELS,
   earningDayTotal,
   sameMonth,
+  splitCarExpenses,
 } from "./uber-shared";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,11 @@ export default async function UberDashboardPage({
   const totalBonus = earningsRows.reduce((s, e) => s + Number(e.bonus ?? 0), 0);
   const totalGanhos = totalGanhosSemBonus + totalBonus;
   const totalGastos = expenseRows.reduce((s, e) => s + Number(e.amount), 0);
+  // "Lucro operacional" isola o resultado de rodar (sem financiamento/
+  // seguro, que são custo fixo de posse do carro, não de operação).
+  const { operational: totalGastosOperacionais, fixedCarCosts: totalCustosFixosCarro } =
+    splitCarExpenses(expenseRows);
+  const lucroOperacional = totalGanhos - totalGastosOperacionais;
   const totalKmRodado = earningsRows.reduce(
     (s, e) => s + Math.max(0, (e.kmFinal ?? 0) - (e.kmInicial ?? 0)),
     0,
@@ -63,7 +69,7 @@ export default async function UberDashboardPage({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
-          <h2 className="mb-2 text-center font-semibold">Lucro líquido</h2>
+          <h2 className="mb-2 text-center font-semibold">Lucro líquido final</h2>
           <RemainingDonut income={totalGanhos} spent={totalGastos} />
           <p className="mt-2 text-center text-xs text-black/50 dark:text-white/50">
             {totalBonus > 0 ? (
@@ -77,6 +83,37 @@ export default async function UberDashboardPage({
               </>
             )}
           </p>
+        </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-1 font-semibold">Lucro operacional</h2>
+          <p className="mb-3 text-xs text-black/50 dark:text-white/50">
+            Só o resultado de rodar — sem financiamento/seguro, que são custo fixo do carro,
+            independente de quanto se dirige.
+          </p>
+          <p
+            className={`text-2xl font-bold ${lucroOperacional < 0 ? "text-red-600" : "text-black dark:text-white"}`}
+          >
+            {formatCurrency(lucroOperacional)}
+          </p>
+          <dl className="mt-3 space-y-1.5 text-sm">
+            <div className="flex justify-between">
+              <dt className="text-black/60 dark:text-white/60">Ganhos (+ bônus)</dt>
+              <dd>{formatCurrency(totalGanhos)}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-black/60 dark:text-white/60">Gastos operacionais</dt>
+              <dd>{formatCurrency(totalGastosOperacionais)}</dd>
+            </div>
+            <div className="flex justify-between border-t border-black/10 pt-1.5 dark:border-white/10">
+              <dt className="text-black/60 dark:text-white/60">Financiamento + Seguro (fixo)</dt>
+              <dd>{formatCurrency(totalCustosFixosCarro)}</dd>
+            </div>
+            <div className="flex justify-between font-medium">
+              <dt>Lucro líquido final</dt>
+              <dd>{formatCurrency(totalGanhos - totalGastos)}</dd>
+            </div>
+          </dl>
         </div>
 
         <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">

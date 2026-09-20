@@ -13,6 +13,15 @@ _(nada por enquanto — itens novos entram aqui conforme surgem)_
 
 ## Concluído recentemente
 
+- **Uber Drive — Lucro Operacional separado do Lucro Líquido (fase 5)**:
+  Financiamento e Seguro são custo fixo de posse do carro (existem
+  independente de rodar ou não), diferente de Combustível/Manutenção/
+  Lavagem/Pedágio/etc, que escalam com o uso. Agora o Dashboard mostra dois
+  números lado a lado: "Lucro Operacional" (só ganhos menos custo de
+  operação, sem financiamento/seguro) e "Lucro Líquido Final" (com tudo,
+  igual antes). O Resumo anual ganhou a coluna "Lucro Operacional" também,
+  ao lado de "Lucro Líquido". Não mudou nada no banco, só como os totais já
+  existentes são somados/exibidos.
 - **Uber Drive — Financiamento com todas as parcelas visíveis (fase 4)**:
   - Novo campo "Valor original do carro" (só informativo, não entra na conta
     do total projetado), mostrado à esquerda de "Entrada".

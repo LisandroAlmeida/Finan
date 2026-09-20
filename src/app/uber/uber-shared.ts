@@ -38,6 +38,27 @@ export const UBER_FIXED_EXPENSE_CATEGORIES = Object.keys(UBER_CATEGORY_LABELS).f
   (c) => c !== "combustivel" && c !== "financiamento",
 );
 
+// Categorias tratadas como custo fixo de posse do carro: existem
+// independente de quanto se dirige naquele mês (financiamento é parcela
+// fixa do carro, seguro é fixo mensal). Ficam de fora do "Lucro
+// operacional", que isola só o resultado de rodar (ganhos menos os custos
+// que de fato escalam com o uso: combustível, manutenção, lavagem,
+// pedágio...).
+export const CUSTOS_FIXOS_CARRO_CATEGORIES: readonly string[] = ["seguro", "financiamento"];
+
+/** Separa os gastos do mês entre operacionais (escalam com o uso do carro)
+ * e custos fixos de posse do carro (seguro + financiamento). */
+export function splitCarExpenses(expenseRows: { category: string; amount: string }[]) {
+  let operational = 0;
+  let fixedCarCosts = 0;
+  for (const e of expenseRows) {
+    const amount = Number(e.amount);
+    if (CUSTOS_FIXOS_CARRO_CATEGORIES.includes(e.category)) fixedCarCosts += amount;
+    else operational += amount;
+  }
+  return { operational, fixedCarCosts, total: operational + fixedCarCosts };
+}
+
 /** Diferença em meses inteiros entre duas datas "YYYY-MM..." (start <= target). */
 function monthsBetween(start: string, target: string) {
   const [sy, sm] = start.slice(0, 7).split("-").map(Number);
