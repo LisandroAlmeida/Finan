@@ -13,6 +13,16 @@ _(nada por enquanto — itens novos entram aqui conforme surgem)_
 
 ## Concluído recentemente
 
+- **Uber Drive — Fatura por cartão (fase 8)**: novo bloco "Faturas dos
+  cartões" no Dashboard, com o dia de fechamento de cada cartão que você
+  passou (Amazon 28, C6 13, Mercado Pago 11) — mostra quanto já foi
+  lançado em cada um e a próxima data de fechamento/vencimento. Não é por
+  mês selecionado no Dashboard, é sempre em relação a hoje (uma fatura
+  pode juntar gastos de dois meses civis, ex: fecha dia 28 → de 29/08 a
+  28/09 cai na mesma fatura). O app ainda não separa fatura já paga de
+  fatura em aberto — é tudo "a pagar na próxima data de fechamento" até
+  ter uma forma de marcar uma fatura como paga (fica pro backlog se você
+  quiser isso depois, igual já existe pros cartões de casa).
 - **Uber Drive — Gastos por cartão no Dashboard (fase 7)**: novo card
   "Gastos por cartão" no Dashboard do mês, com o mesmo gráfico de rosca +
   lista que "Gastos por categoria" já tinha — agora com valor e % junto

@@ -61,6 +61,44 @@ export function groupExpensesByCard(
     .sort((a, b) => b.value - a.value);
 }
 
+// Dia de fechamento de cada cartão do Uber (informado por você). Cartão
+// que não estiver aqui simplesmente não aparece no bloco de faturas — o
+// resto do app (Combustível, Lançamentos, o total por cartão) continua
+// funcionando normal com qualquer nome de cartão, tenha fatura ou não.
+export const UBER_CARD_CLOSING_DAY: Record<string, number> = {
+  Amazon: 28,
+  C6: 13,
+  "Mercado Pago": 11,
+};
+
+/** Próxima data (YYYY-MM-DD) em que o dia de fechamento `closingDay`
+ * ocorre a partir de `today` (inclusive) — ex: hoje 24/09 e fechamento
+ * dia 28 → 28/09; hoje 24/09 e fechamento dia 13 → 13/10 (já passou em
+ * setembro). */
+export function nextClosingDate(closingDay: number, today: Date = new Date()): string {
+  const y = today.getFullYear();
+  const m = today.getMonth() + 1; // 1-12
+  const d = today.getDate();
+  const [ny, nm] = d <= closingDay ? [y, m] : m === 12 ? [y + 1, 1] : [y, m + 1];
+  return `${ny}-${String(nm).padStart(2, "0")}-${String(closingDay).padStart(2, "0")}`;
+}
+
+/** Fatura em aberto de cada cartão configurado: soma tudo que já foi
+ * lançado nele (o app ainda não separa fatura já fechada de fatura em
+ * aberto — é tudo "a pagar na próxima data de fechamento" até você marcar
+ * uma fatura como paga) e a próxima data em que ela fecha/vence. */
+export function openFaturaByCard(
+  allExpenseRows: { paymentMethod: string | null; amount: string }[],
+  today: Date = new Date(),
+): { card: string; total: number; closingDate: string }[] {
+  return Object.entries(UBER_CARD_CLOSING_DAY).map(([card, closingDay]) => {
+    const total = allExpenseRows
+      .filter((e) => e.paymentMethod?.trim() === card)
+      .reduce((s, e) => s + Number(e.amount), 0);
+    return { card, total, closingDate: nextClosingDate(closingDay, today) };
+  });
+}
+
 // Categorias que aparecem no seletor de "Lançamentos" — combustível fica de
 // fora porque tem tela própria (com km/litros), e financiamento fica de
 // fora porque só é lançado pela tela de Financiamento (marcar como pago).

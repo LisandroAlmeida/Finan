@@ -6,11 +6,13 @@ import { UberSubNav } from "@/components/UberSubNav";
 import { RemainingDonut } from "@/components/charts/RemainingDonut";
 import { CategoryAllocationChart } from "@/components/charts/CategoryAllocationChart";
 import { quickLogUberDay } from "@/lib/uber-actions";
+import { formatDate } from "@/lib/format";
 import {
   UBER_CATEGORY_COLORS,
   UBER_CATEGORY_LABELS,
   earningDayTotal,
   groupExpensesByCard,
+  openFaturaByCard,
   sameMonth,
   splitCarExpenses,
 } from "./uber-shared";
@@ -64,6 +66,7 @@ export default async function UberDashboardPage({
     .sort((a, b) => b.value - a.value);
 
   const cardData = groupExpensesByCard(expenseRows);
+  const openFaturas = openFaturaByCard(allExpenses).filter((f) => f.total > 0);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
@@ -219,6 +222,27 @@ export default async function UberDashboardPage({
           <CategoryAllocationChart data={cardData} />
         </div>
       </div>
+
+      {openFaturas.length > 0 && (
+        <div className="mt-6 rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-1 font-semibold">Faturas dos cartões</h2>
+          <p className="mb-3 text-xs text-black/50 dark:text-white/50">
+            Tudo que já foi lançado em cada cartão, a pagar na próxima data de fechamento — não é
+            por mês selecionado acima, é sempre em relação a hoje.
+          </p>
+          <dl className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            {openFaturas.map((f) => (
+              <div key={f.card} className="rounded-lg border border-black/10 p-3 dark:border-white/10">
+                <dt className="text-sm font-medium">{f.card}</dt>
+                <dd className="text-lg font-semibold">{formatCurrency(f.total)}</dd>
+                <dd className="text-xs text-black/50 dark:text-white/50">
+                  Fecha/vence {formatDate(f.closingDate)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      )}
     </main>
   );
 }
