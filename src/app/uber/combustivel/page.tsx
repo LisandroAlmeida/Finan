@@ -108,6 +108,14 @@ export default async function UberCombustivelPage({
               className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
             />
           </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-black/60 dark:text-white/60">Cartão/Forma pag</label>
+            <input
+              name="paymentMethod"
+              placeholder="Mercado Pago, C6, Pix..."
+              className="w-36 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+            />
+          </div>
           <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
             Adicionar
           </button>
@@ -125,6 +133,7 @@ export default async function UberCombustivelPage({
               <th className="px-2 py-2">Litros</th>
               <th className="px-2 py-2">Km/L</th>
               <th className="px-2 py-2">R$/Km</th>
+              <th className="px-2 py-2">Cartão</th>
               <th className="px-2 py-2" />
             </tr>
           </thead>
@@ -144,7 +153,7 @@ export default async function UberCombustivelPage({
             })}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-2 py-6 text-center text-black/50 dark:text-white/50">
+                <td colSpan={9} className="px-2 py-6 text-center text-black/50 dark:text-white/50">
                   Nenhum abastecimento nesse mês.
                 </td>
               </tr>
@@ -157,7 +166,7 @@ export default async function UberCombustivelPage({
                   Total
                 </td>
                 <td className="px-2 py-2">{formatCurrency(total)}</td>
-                <td colSpan={4} />
+                <td colSpan={5} />
               </tr>
             </tfoot>
           )}

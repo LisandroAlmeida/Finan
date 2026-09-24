@@ -13,6 +13,23 @@ _(nada por enquanto — itens novos entram aqui conforme surgem)_
 
 ## Concluído recentemente
 
+- **Uber Drive — Cartão como filtro/relatório (fase 6)**: pensado pra dar
+  visibilidade da aba "Cartões" que você adicionou na planilha (Mercado
+  Pago, Amazon, C6...). Como tudo dali é gasto de verdade (não tem "é do
+  carro"/"não é" — combina com o que você confirmou), não criou tabela
+  nova nem mudou o banco: aproveitou o campo "Forma Pag" que Lançamentos já
+  tinha (sem uso em Combustível ainda) pra virar a etiqueta do cartão em
+  qualquer categoria.
+  - `Combustível` ganhou o campo "Cartão/Forma pag" (cadastro e edição),
+    igual Lançamentos já tinha — assim dá pra marcar em qual cartão foi
+    cada abastecimento, sem duplicar o lançamento que já existe.
+  - `Resumo` ganhou uma tabelinha "Total em {ano} por cartão/forma de
+    pagamento", somando todos os gastos do ano (qualquer categoria) por
+    valor de "Forma Pag" — dá o total gasto em cada cartão que você
+    pediu, sem precisar de tela/relatório separado.
+  - Categorias que não existem no app (ex: "Mk Kobrasol", "Vídeos IA")
+    entram em Lançamentos como "Outros", com o nome original guardado na
+    Descrição — nada se perde, só não vira categoria própria.
 - **Uber Drive — Dashboard: Lançamento rápido ao lado do Resumo do mês**:
   linha de cima voltou a ser Lucro líquido final/Lucro operacional/Gastos
   por categoria (como era antes); "Resumo do mês" saiu dessa grade e foi

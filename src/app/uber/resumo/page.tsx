@@ -79,6 +79,24 @@ export default async function UberResumoPage({
     lucroLiquido: rows.reduce((s, r) => s + r.lucroLiquido, 0),
   };
 
+  // Total gasto no ano por cartão/forma de pagamento (campo livre em
+  // uber_expenses.paymentMethod) — dá visibilidade de quanto foi pra cada
+  // cartão, sem precisar de uma tabela/tela própria pra isso.
+  const expensesInYear = allExpenses.filter((e) => e.date.startsWith(`${year}-`));
+  const cardTotalsMap = new Map<string, number>();
+  let semCartaoTotal = 0;
+  for (const e of expensesInYear) {
+    const card = e.paymentMethod?.trim();
+    if (!card) {
+      semCartaoTotal += Number(e.amount);
+      continue;
+    }
+    cardTotalsMap.set(card, (cardTotalsMap.get(card) ?? 0) + Number(e.amount));
+  }
+  const cardTotals = Array.from(cardTotalsMap.entries())
+    .map(([card, total]) => ({ card, total }))
+    .sort((a, b) => b.total - a.total);
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
       <div className="flex items-center justify-center gap-4 py-2">
@@ -164,6 +182,33 @@ export default async function UberResumoPage({
           </tfoot>
         </table>
       </div>
+
+      {cardTotals.length > 0 && (
+        <div className="mt-6 overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
+          <table className="w-full max-w-sm text-sm">
+            <thead className="bg-black/5 text-left dark:bg-white/5">
+              <tr>
+                <th className="px-2 py-2">Cartão / forma de pagamento</th>
+                <th className="px-2 py-2">Total em {year}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cardTotals.map(({ card, total }) => (
+                <tr key={card} className="border-t border-black/10 dark:border-white/10">
+                  <td className="px-2 py-2">{card}</td>
+                  <td className="px-2 py-2">{formatCurrency(total)}</td>
+                </tr>
+              ))}
+              {semCartaoTotal > 0 && (
+                <tr className="border-t border-black/10 text-black/50 dark:border-white/10 dark:text-white/50">
+                  <td className="px-2 py-2">Sem cartão informado</td>
+                  <td className="px-2 py-2">{formatCurrency(semCartaoTotal)}</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
     </main>
   );
 }

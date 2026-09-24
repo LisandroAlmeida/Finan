@@ -11,6 +11,7 @@ type FuelExpense = {
   amount: string;
   kmAbastecimento: number | null;
   litrosAbastecidos: string | null;
+  paymentMethod: string | null;
 };
 
 export function UberFuelRow({
@@ -45,7 +46,7 @@ export function UberFuelRow({
   if (editing) {
     return (
       <tr className="border-t border-black/10 dark:border-white/10">
-        <td colSpan={8} className="px-3 py-3">
+        <td colSpan={9} className="px-3 py-3">
           <form action={handleSave} className="flex flex-wrap items-end gap-3">
             <input type="hidden" name="id" value={expense.id} />
             <input type="hidden" name="category" value="combustivel" />
@@ -101,6 +102,15 @@ export function UberFuelRow({
                 className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
               />
             </div>
+            <div className="flex flex-col">
+              <label className="text-xs text-black/60 dark:text-white/60">Cartão/Forma pag</label>
+              <input
+                name="paymentMethod"
+                defaultValue={expense.paymentMethod ?? ""}
+                placeholder="Mercado Pago, C6, Pix..."
+                className="w-36 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              />
+            </div>
             <div className="flex gap-2">
               <button
                 type="submit"
@@ -132,6 +142,7 @@ export function UberFuelRow({
       <td className="px-2 py-2">{expense.litrosAbastecidos ?? "-"}</td>
       <td className="px-2 py-2">{kmPorLitro != null ? kmPorLitro.toFixed(2) : "-"}</td>
       <td className="px-2 py-2">{valorPorKm != null ? formatCurrency(valorPorKm) : "-"}</td>
+      <td className="px-2 py-2">{expense.paymentMethod ?? "-"}</td>
       <td className="px-2 py-2">
         <div className="flex flex-wrap items-center justify-end gap-x-2 gap-y-1">
           <button
