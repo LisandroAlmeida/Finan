@@ -13,6 +13,12 @@ _(nada por enquanto — itens novos entram aqui conforme surgem)_
 
 ## Concluído recentemente
 
+- **Uber Drive — Gastos por cartão no Dashboard (fase 7)**: novo card
+  "Gastos por cartão" no Dashboard do mês, com o mesmo gráfico de rosca +
+  lista que "Gastos por categoria" já tinha — agora com valor e % junto
+  (isso ficou pra categoria também, de graça, já que é o mesmo componente).
+  Cor de cada cartão é atribuída sozinha (ordem alfabética), já que
+  cartão é texto livre, não tem uma lista fixa.
 - **Uber Drive — Cartão como filtro/relatório (fase 6)**: pensado pra dar
   visibilidade da aba "Cartões" que você adicionou na planilha (Mercado
   Pago, Amazon, C6...). Como tudo dali é gasto de verdade (não tem "é do

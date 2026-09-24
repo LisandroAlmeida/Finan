@@ -10,6 +10,7 @@ import {
   UBER_CATEGORY_COLORS,
   UBER_CATEGORY_LABELS,
   earningDayTotal,
+  groupExpensesByCard,
   sameMonth,
   splitCarExpenses,
 } from "./uber-shared";
@@ -61,6 +62,8 @@ export default async function UberDashboardPage({
       color: UBER_CATEGORY_COLORS[key] ?? "#6B7280",
     }))
     .sort((a, b) => b.value - a.value);
+
+  const cardData = groupExpensesByCard(expenseRows);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
@@ -122,7 +125,7 @@ export default async function UberDashboardPage({
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <section className="rounded-xl border border-black/10 p-4 dark:border-white/10">
           <h2 className="mb-1 font-semibold">Lançamento rápido do dia</h2>
           <p className="mb-3 text-xs text-black/50 dark:text-white/50">
@@ -209,6 +212,11 @@ export default async function UberDashboardPage({
               </div>
             )}
           </dl>
+        </div>
+
+        <div className="rounded-xl border border-black/10 p-4 dark:border-white/10">
+          <h2 className="mb-2 font-semibold">Gastos por cartão</h2>
+          <CategoryAllocationChart data={cardData} />
         </div>
       </div>
     </main>

@@ -24,6 +24,43 @@ export const UBER_CATEGORY_COLORS: Record<string, string> = {
   outros: "#6B7280",
 };
 
+// Paleta pra colorir cartões/formas de pagamento dinamicamente (não tem um
+// enum fixo pra isso, é texto livre em uber_expenses.paymentMethod) — cor
+// atribuída por ordem alfabética do nome, ciclando se tiver mais cartões
+// que cores.
+const CARD_COLOR_PALETTE = [
+  "#2563EB",
+  "#DC2626",
+  "#0D9488",
+  "#7C3AED",
+  "#DB2777",
+  "#B45309",
+  "#65A30D",
+  "#334155",
+];
+
+/** Soma os gastos (qualquer categoria) por cartão/forma de pagamento
+ * (uber_expenses.paymentMethod), ignorando lançamentos sem esse campo
+ * preenchido. Cor atribuída de forma estável (ordem alfabética do nome). */
+export function groupExpensesByCard(
+  expenseRows: { paymentMethod: string | null; amount: string }[],
+): { name: string; value: number; color: string }[] {
+  const totals = new Map<string, number>();
+  for (const e of expenseRows) {
+    const card = e.paymentMethod?.trim();
+    if (!card) continue;
+    totals.set(card, (totals.get(card) ?? 0) + Number(e.amount));
+  }
+  const cardNames = Array.from(totals.keys()).sort((a, b) => a.localeCompare(b, "pt-BR"));
+  return cardNames
+    .map((name, i) => ({
+      name,
+      value: totals.get(name) ?? 0,
+      color: CARD_COLOR_PALETTE[i % CARD_COLOR_PALETTE.length],
+    }))
+    .sort((a, b) => b.value - a.value);
+}
+
 // Categorias que aparecem no seletor de "Lançamentos" — combustível fica de
 // fora porque tem tela própria (com km/litros), e financiamento fica de
 // fora porque só é lançado pela tela de Financiamento (marcar como pago).

@@ -12,6 +12,8 @@ export function CategoryAllocationChart({
     return <p className="py-10 text-center text-sm text-black/50 dark:text-white/50">Sem gastos ainda.</p>;
   }
 
+  const total = data.reduce((s, d) => s + d.value, 0);
+
   return (
     <div className="flex flex-col items-center gap-3">
       <div className="aspect-square w-full max-w-[208px]">
@@ -40,7 +42,9 @@ export function CategoryAllocationChart({
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: d.color }} />
               <span className="truncate">{d.name}</span>
             </span>
-            <span className="shrink-0 text-black/60 dark:text-white/60">{formatCurrency(d.value)}</span>
+            <span className="shrink-0 text-black/60 dark:text-white/60">
+              {formatCurrency(d.value)} ({total > 0 ? Math.round((d.value / total) * 100) : 0}%)
+            </span>
           </li>
         ))}
       </ul>
