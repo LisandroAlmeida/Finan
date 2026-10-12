@@ -223,6 +223,8 @@ export const uberFixedExpenses = pgTable("uber_fixed_expenses", {
   // calculado a partir de installmentStartDate, igual ao financiamento.
   installmentCount: integer("installment_count"),
   installmentStartDate: date("installment_start_date", { mode: "string" }),
+  // Só usado quando category = "manutencao": sistema do carro (motor, freios...).
+  maintenanceSystem: text("maintenance_system"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
