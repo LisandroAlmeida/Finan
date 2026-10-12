@@ -34,6 +34,23 @@ export const uberExpenseCategoryEnum = pgEnum("uber_expense_category", [
   "outros",
 ]);
 
+export const uberInvestmentCategoryEnum = pgEnum("uber_investment_category", [
+  "veiculo",
+  "documentacao",
+  "equipamentos",
+  "conforto",
+  "identificacao",
+  "protecao",
+  "outros",
+]);
+
+export const uberVehicleOwnershipEnum = pgEnum("uber_vehicle_ownership", [
+  "proprio",
+  "financiado",
+  "alugado",
+  "outro",
+]);
+
 // ---------- Categorias de gasto ----------
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -148,11 +165,11 @@ export const goals = pgTable("goals", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// ---------- Uber Drive (controle de motorista de app) ----------
-// Totalmente separado das contas da casa (accounts/expenses/bills/incomes) —
-// é um controle à parte, não soma no Dashboard nem no "Restante para gastar".
-// "Ganhos Totais" e "Km rodados" não são guardados: são calculados na hora de
-// exibir, igual a planilha original fazia com fórmulas.
+// ---------- Uber Drive (tabelas do app uber-app) ----------
+// ATENÇÃO: a aba Uber saiu deste app — hoje essas tabelas são usadas só pelo
+// repositório uber-app, que usa o MESMO banco. Elas ficam declaradas aqui só
+// para o `drizzle-kit push` deste app não apagá-las. Se mudar o schema no
+// uber-app, espelhe aqui. Não há mais código deste app lendo/gravando nelas.
 export const uberEarnings = pgTable("uber_earnings", {
   id: uuid("id").primaryKey().defaultRandom(),
   date: date("date", { mode: "string" }).notNull(),
@@ -177,7 +194,7 @@ export const uberExpenses = pgTable("uber_expenses", {
   category: uberExpenseCategoryEnum("category").notNull(),
   description: text("description"),
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
-  paymentMethod: text("payment_method"), // livre (Pix/Crédito/Dinheiro) — não usa o enum das contas da casa
+  paymentMethod: text("payment_method"), // livre (cartão, Pix, Dinheiro...)
   // Só preenchidos quando category = "combustivel"; usados pra calcular
   // Km/L e R$/Km comparando com o abastecimento anterior.
   kmAbastecimento: integer("km_abastecimento"),
@@ -226,6 +243,39 @@ export const uberFinancings = pgTable("uber_financings", {
   installmentCount: integer("installment_count").notNull(),
   startDate: date("start_date", { mode: "string" }).notNull(),
   active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Faturas de cartão marcadas como pagas. Um ciclo de fatura é identificado
+// por (card, closingDate) — closingDate calculado por faturaClosingDateFor
+// (uber-shared.ts) a partir da data de cada compra, nunca guardado nos
+// gastos em si. Os gastos nunca são apagados/movidos: eles só param de
+// contar na "fatura em aberto" do Dashboard assim que o ciclo deles aparece
+// aqui como pago.
+export const uberCardStatements = pgTable("uber_card_statements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  card: text("card").notNull(),
+  closingDate: date("closing_date", { mode: "string" }).notNull(),
+  paidAt: timestamp("paid_at").defaultNow().notNull(),
+});
+
+// Investimentos de capital pra colocar/manter a operação Uber rodando —
+// diferente de despesa operacional (uber_expenses): não entra no resultado
+// operacional do mês, é usado só pra acompanhar quanto capital já foi
+// empregado no negócio (card "Investimento no negócio" do Dashboard) e,
+// mais pra frente, pra calcular recuperação do investimento.
+export const uberInvestments = pgTable("uber_investments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  date: date("date", { mode: "string" }).notNull(),
+  category: uberInvestmentCategoryEnum("category").notNull(),
+  description: text("description").notNull(),
+  amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+  // Forma de pagamento (Pix, C6, Amazon, Mercado Pago...) — texto livre como em
+  // uber_expenses.payment_method; null nos lançamentos antigos.
+  paymentMethod: text("payment_method"),
+  // Legado: antes guardava "como o carro foi obtido". A tela não usa mais esse
+  // campo, mas a coluna fica pra não perder o histórico.
+  vehicleOwnership: uberVehicleOwnershipEnum("vehicle_ownership"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

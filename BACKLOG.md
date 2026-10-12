@@ -13,6 +13,12 @@ _(nada por enquanto — itens novos entram aqui conforme surgem)_
 
 ## Concluído recentemente
 
+- **Aba Uber removida deste app**: o controle de motorista agora vive só no
+  repositório uber-app (app próprio). Saíram o item "Uber" do menu, as rotas
+  `/uber/*`, os componentes `Uber*` e `uber-actions`. As tabelas `uber_*`
+  continuam declaradas no `schema.ts` (sincronizadas com o uber-app) só para
+  o `drizzle-kit push` não apagá-las do banco compartilhado.
+
 - **Uber Drive — Fatura por cartão (fase 8)**: novo bloco "Faturas dos
   cartões" no Dashboard, com o dia de fechamento de cada cartão que você
   passou (Amazon 28, C6 13, Mercado Pago 11) — mostra quanto já foi

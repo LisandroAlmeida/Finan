@@ -11,7 +11,6 @@ const LINKS = [
   { href: "/entradas", label: "Entradas" },
   { href: "/assinaturas", label: "Assinaturas" },
   { href: "/reservas", label: "Reservas" },
-  { href: "/uber", label: "Uber" },
 ];
 
 export function Nav() {
