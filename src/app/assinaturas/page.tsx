@@ -2,6 +2,7 @@ import Link from "next/link";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { subscriptions, accounts } from "@/db/schema";
+import { PageHeader } from "@/components/PageHeader";
 import { formatCurrency } from "@/lib/format";
 import { nextOccurrence } from "@/lib/subscriptionCycle";
 import { SubscriptionRow } from "./SubscriptionRow";
@@ -24,7 +25,7 @@ export default async function AssinaturasPage() {
     db.query.accounts.findMany({ where: eq(accounts.archived, false) }),
   ]);
 
-  const categoryList = categoryListRaw.filter((c) => !REDUNDANT_CATEGORY.test(c.name));
+  const categoryList = categoryListRaw.filter((c) => c.kind === "despesa" && !REDUNDANT_CATEGORY.test(c.name));
 
   // A "próxima cobrança" é calculada a partir da data salva + o ciclo, sempre
   // rolando pra frente até cair hoje ou no futuro — não precisa editar isso
@@ -40,36 +41,37 @@ export default async function AssinaturasPage() {
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
-      <section className="mt-4 rounded-xl border border-black/10 p-4 text-center dark:border-white/10">
-        <h2 className="font-semibold text-black/60 dark:text-white/60">Total mensal equivalente</h2>
+      <PageHeader title="Assinaturas" subtitle={"Serviços recorrentes da casa"} />
+      <section className="mt-4 rounded-2xl border bg-card p-4 text-center">
+        <h2 className="font-semibold text-muted-foreground">Total mensal equivalente</h2>
         <p className="mt-1 text-3xl font-bold">{formatCurrency(totalMonthly)}</p>
-        <p className="mt-1 text-xs text-black/50 dark:text-white/50">
+        <p className="mt-1 text-xs text-muted-foreground">
           Assinaturas anuais entram divididas por 12 nesse total.
         </p>
       </section>
 
-      <section className="mt-6 rounded-xl border border-black/10 p-4 dark:border-white/10">
+      <section className="mt-6 rounded-2xl border bg-card p-4">
         <h2 className="mb-3 font-semibold">Nova assinatura</h2>
         <form action={createSubscription} className="flex flex-wrap items-end gap-3">
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Nome</label>
+            <label className="text-xs text-muted-foreground">Nome</label>
             <input
               name="name"
               required
               placeholder="Ex: Netflix"
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             />
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">
+            <label className="text-xs text-muted-foreground">
               Categoria{" "}
-              <Link href="/categorias" className="text-blue-600 hover:underline">
+              <Link href="/configuracoes" className="text-primary hover:underline">
                 (+ nova)
               </Link>
             </label>
             <select
               name="categoryId"
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             >
               <option value="">-</option>
               {categoryList.map((c) => (
@@ -80,10 +82,10 @@ export default async function AssinaturasPage() {
             </select>
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Forma de pagamento</label>
+            <label className="text-xs text-muted-foreground">Forma de pagamento</label>
             <select
               name="accountId"
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             >
               <option value="">-</option>
               {accountList.map((a) => (
@@ -94,46 +96,46 @@ export default async function AssinaturasPage() {
             </select>
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Valor (R$)</label>
+            <label className="text-xs text-muted-foreground">Valor (R$)</label>
             <input
               name="amount"
               type="number"
               step="0.01"
               min="0"
               required
-              className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="w-28 rounded-lg border px-2 py-1.5"
             />
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Ciclo</label>
+            <label className="text-xs text-muted-foreground">Ciclo</label>
             <select
               name="billingCycle"
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             >
               <option value="mensal">Mensal</option>
               <option value="anual">Anual</option>
             </select>
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Próxima cobrança</label>
+            <label className="text-xs text-muted-foreground">Próxima cobrança</label>
             <input
               name="nextChargeDate"
               type="date"
               required
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             />
           </div>
-          <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
+          <button className="rounded-lg bg-primary px-4 py-1.5 text-white hover:brightness-110">
             Cadastrar
           </button>
         </form>
-        <p className="mt-2 text-xs text-black/50 dark:text-white/50">
+        <p className="mt-2 text-xs text-muted-foreground">
           Depois de cadastrada, a <strong>próxima cobrança</strong> é recalculada sozinha a partir
           dessa data e do ciclo — não precisa entrar aqui todo mês só pra atualizar a data.
         </p>
       </section>
 
-      <section className="mt-6 overflow-x-auto rounded-xl border border-black/10 dark:border-white/10">
+      <section className="mt-6 overflow-x-auto rounded-2xl border bg-card">
         <table className="w-full text-sm">
           <thead className="bg-black/5 text-left dark:bg-white/5">
             <tr>
@@ -160,7 +162,7 @@ export default async function AssinaturasPage() {
             ))}
             {subscriptionList.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-3 py-6 text-center text-black/50 dark:text-white/50">
+                <td colSpan={7} className="px-3 py-6 text-center text-muted-foreground">
                   Nenhuma assinatura cadastrada ainda.
                 </td>
               </tr>

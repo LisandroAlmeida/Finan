@@ -45,13 +45,13 @@ export function BillRow({
 
   if (editing) {
     return (
-      <tr className="border-t border-black/10 dark:border-white/10">
+      <tr className="border-t border">
         <td colSpan={6} className="px-3 py-3">
           <form action={handleSave} className="flex flex-wrap items-end gap-3">
             <input type="hidden" name="id" value={bill.id} />
             <input type="hidden" name="redirectPath" value={redirectPath} />
             <div className="flex flex-col">
-              <label className="text-xs text-black/60 dark:text-white/60">Planejado</label>
+              <label className="text-xs text-muted-foreground">Planejado</label>
               <input
                 name="plannedAmount"
                 type="number"
@@ -59,27 +59,27 @@ export function BillRow({
                 min="0"
                 required
                 defaultValue={bill.plannedAmount}
-                className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="w-28 rounded-lg border px-2 py-1.5"
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-xs text-black/60 dark:text-white/60">Real</label>
+              <label className="text-xs text-muted-foreground">Real</label>
               <input
                 name="actualAmount"
                 type="number"
                 step="0.01"
                 min="0"
                 defaultValue={bill.actualAmount ?? ""}
-                className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="w-28 rounded-lg border px-2 py-1.5"
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-xs text-black/60 dark:text-white/60">Pago em</label>
+              <label className="text-xs text-muted-foreground">Pago em</label>
               <input
                 name="paidAt"
                 type="date"
                 defaultValue={bill.paidAt ?? ""}
-                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="rounded-lg border px-2 py-1.5"
               />
             </div>
             <label className="flex items-center gap-1.5 pb-2 text-sm">
@@ -89,14 +89,14 @@ export function BillRow({
               <button
                 type="submit"
                 disabled={pending}
-                className="rounded-md bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-lg bg-primary px-3 py-1.5 text-xs text-white hover:brightness-110 disabled:opacity-50"
               >
                 Salvar
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="rounded-md border border-black/15 px-3 py-1.5 text-xs dark:border-white/20"
+                className="rounded-lg border px-3 py-1.5 text-xs"
               >
                 Cancelar
               </button>
@@ -108,7 +108,7 @@ export function BillRow({
   }
 
   return (
-    <tr className="border-t border-black/10 dark:border-white/10">
+    <tr className="border-t border">
       <td className="px-2 py-2">
         <div className="flex items-center gap-1.5">
           <BankBadge bank={bill.account!.bank} size={18} />
@@ -139,13 +139,13 @@ export function BillRow({
                   ou data diferente, "editar" cobre o mesmo caso com mais controle. */}
               <input type="hidden" name="actualAmount" value={bill.plannedAmount} />
               <input type="hidden" name="paidAt" value={new Date().toISOString().slice(0, 10)} />
-              <button className="text-xs text-blue-600 hover:underline">marcar pago</button>
+              <button className="text-xs text-primary hover:underline">marcar pago</button>
             </form>
           )}
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="text-xs text-blue-600 hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             editar
           </button>
@@ -154,7 +154,7 @@ export function BillRow({
             confirmMessage="Excluir essa fatura? Essa ação não pode ser desfeita."
             pending={pending}
             onConfirm={handleDelete}
-            className="text-xs text-red-600 hover:underline"
+            className="text-xs text-destructive hover:underline"
           />
         </div>
       </td>

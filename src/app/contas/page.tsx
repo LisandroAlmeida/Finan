@@ -1,7 +1,8 @@
+import { PageHeader } from "@/components/PageHeader";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { accounts, bills } from "@/db/schema";
-import { currentMonth } from "@/lib/month";
+import { currentMonth, monthLabelLong } from "@/lib/month";
 import { AccountItem } from "@/components/AccountItem";
 import { BANK_OPTIONS } from "@/lib/banks";
 import { BillSection } from "@/components/BillSection";
@@ -31,8 +32,9 @@ export default async function ContasPage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
+      <PageHeader title="Contas" subtitle={`${monthLabelLong(month)} · contas fixas e a pagar`} />
 
-      <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">
+      <section className="mt-4 rounded-2xl border bg-card p-4">
         <h2 className="mb-3 font-semibold">Contas cadastradas</h2>
 
         {accountList.length > 0 && (
@@ -44,25 +46,25 @@ export default async function ContasPage({
         )}
 
         {accountList.length === 0 && (
-          <p className="mb-4 text-black/50 dark:text-white/50">Nenhuma conta cadastrada ainda.</p>
+          <p className="mb-4 text-muted-foreground">Nenhuma conta cadastrada ainda.</p>
         )}
 
         <form action={createAccount} className="flex flex-wrap items-end gap-3">
           <input type="hidden" name="type" value="conta" />
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Nome</label>
+            <label className="text-xs text-muted-foreground">Nome</label>
             <input
               name="name"
               required
               placeholder="Ex: Internet Mãe"
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             />
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Banco</label>
+            <label className="text-xs text-muted-foreground">Banco</label>
             <select
               name="bank"
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             >
               {BANK_OPTIONS.map((b) => (
                 <option key={b.value} value={b.value}>
@@ -72,27 +74,27 @@ export default async function ContasPage({
             </select>
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Dia vencimento</label>
+            <label className="text-xs text-muted-foreground">Dia vencimento</label>
             <input
               name="dueDay"
               type="number"
               min="1"
               max="31"
-              className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="w-24 rounded-lg border px-2 py-1.5"
             />
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Forma de pagamento</label>
+            <label className="text-xs text-muted-foreground">Forma de pagamento</label>
             <select
               name="paymentMethod"
               defaultValue="boleto"
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             >
               <option value="boleto">Boleto</option>
               <option value="pix">Pix</option>
             </select>
           </div>
-          <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
+          <button className="rounded-lg bg-primary px-4 py-1.5 text-white hover:brightness-110">
             Cadastrar
           </button>
         </form>

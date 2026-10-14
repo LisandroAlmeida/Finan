@@ -14,17 +14,24 @@ dentro de Transações; Cartões (logo, adicionais, fatura, parcelas) devem ser 
   sidebar de 256px, topbar com seletor de mês, alternador de tema, botão Sair.
 - [x] Fase 2: Visão Geral (KPIs, Receitas × Despesas em 6 meses, rosca por categoria,
   transações recentes, metas, gastos por cartão, fluxo de contas).
-- [ ] Fase 3: Transações unificadas (Gastos + Entradas, modal Despesa/Receita, coluna
-  "Quem pagou" Lisandro/Lety/Casal, Assinaturas como categoria).
-- [ ] Fase 4: Orçamentos (limite mensal por categoria, barras verde/âmbar/vermelho).
-- [ ] Fase 5: Metas & Sonhos (metas livres com "Registrar aporte").
-- [ ] Fase 6: Contas & Cartões no novo layout, com patrimônio total e saldo por conta
-  (precisa de saldo inicial em `accounts`). Trocar o KPI "Reservas e investimentos" da
-  Visão Geral por "Saldo em contas".
-- [ ] Fase 7: Configurações (Família, Categorias de despesa/receita, Aparência, Exportar CSV).
+- [x] Fase 3: Transações unificadas (`/transacoes`: despesas + receitas, modal Despesa/Receita,
+  "Quem pagou" Lisandro/Lety/Casal, filtros). Assinaturas ficou como aba ao lado de Transações.
+  `/gastos` e `/entradas` redirecionam.
+- [x] Fase 4: Orçamentos (`/orcamentos`: limite mensal por categoria, barras verde/âmbar/vermelho,
+  "Copiar do mês anterior", card na Visão Geral).
+- [x] Fase 5: Metas & Sonhos (`/metas`: metas livres, "Registrar aporte", histórico). As metas e
+  reservas antigas foram migradas; aportes = linhas de `reserves` com `goal_id`. `/reservas` redireciona.
+- [x] Fase 6: Contas & Cartões no novo visual (cartões, adicionais, fatura e parcelas mantidos).
+- [x] Fase 7: Configurações (`/configuracoes`: Família, categorias de despesa/receita, tema,
+  exportar CSV em `/api/export`, Sair). `/categorias` redireciona.
 
-Telas ainda não migradas (Gastos, Entradas, Assinaturas, Contas, Cartões, Reservas,
-Categorias) já rodam dentro do novo shell, agrupadas por abas no menu mais parecido.
+SQL aplicado em produção: `sql/2026-10-fases-3-7.sql` (somente adições, idempotente).
+
+Pendente / decisões em aberto:
+- "Saldo em contas": o app não tem contas bancárias com saldo (as "Contas" são contas a pagar).
+  O KPI "Reservas e investimentos" fica no lugar. Perguntar se quer um cadastro de contas com saldo.
+- Supabase avisa que as tabelas do schema `public` estão sem RLS. Não aplicado: decidir com o dono.
+- Entradas antigas não têm data (aparecem sem data na lista).
 
 ## Ideias sem prioridade definida ainda
 

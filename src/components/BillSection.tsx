@@ -28,7 +28,7 @@ export function BillSection({
   const totalActual = billList.reduce((s, b) => s + Number(b.actualAmount ?? 0), 0);
 
   return (
-    <section className="mt-6 rounded-xl border border-black/10 p-4 dark:border-white/10">
+    <section className="mt-6 rounded-2xl border bg-card p-4">
       <h2 className="mb-3 font-semibold">Fatura do mês</h2>
 
       {accountsWithoutBill.length > 0 && (
@@ -36,11 +36,11 @@ export function BillSection({
           <input type="hidden" name="month" value={month} />
           <input type="hidden" name="redirectPath" value={redirectPath} />
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Conta/cartão</label>
+            <label className="text-xs text-muted-foreground">Conta/cartão</label>
             <select
               name="accountId"
               required
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             >
               {accountsWithoutBill.map((a) => (
                 <option key={a.id} value={a.id}>
@@ -50,17 +50,17 @@ export function BillSection({
             </select>
           </div>
           <div className="flex flex-col">
-            <label className="text-xs text-black/60 dark:text-white/60">Valor planejado</label>
+            <label className="text-xs text-muted-foreground">Valor planejado</label>
             <input
               name="plannedAmount"
               type="number"
               step="0.01"
               min="0"
               required
-              className="w-32 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="w-32 rounded-lg border px-2 py-1.5"
             />
           </div>
-          <button className="rounded-md bg-blue-600 px-4 py-1.5 text-white hover:bg-blue-700">
+          <button className="rounded-lg bg-primary px-4 py-1.5 text-white hover:brightness-110">
             Lançar fatura
           </button>
         </form>
@@ -91,7 +91,7 @@ export function BillSection({
             ))}
             {billList.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-2 py-6 text-center text-black/50 dark:text-white/50">
+                <td colSpan={6} className="px-2 py-6 text-center text-muted-foreground">
                   Nenhuma fatura lançada nesse mês.
                 </td>
               </tr>
@@ -99,7 +99,7 @@ export function BillSection({
           </tbody>
           {billList.length > 0 && (
             <tfoot>
-              <tr className="border-t border-black/10 font-semibold dark:border-white/10">
+              <tr className="border-t font-semibold">
                 <td className="px-2 py-2">Total</td>
                 <td className="px-2 py-2">{formatCurrency(totalPlanned)}</td>
                 <td className="px-2 py-2">{formatCurrency(totalActual)}</td>

@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { expenses } from "@/db/schema";
 import { toMonth, shiftMonth } from "@/lib/month";
+import { parsePaidBy } from "@/lib/people";
 
 /** Divide um valor total em N parcelas que somam exatamente o total. */
 function splitInstallments(total: number, count: number): number[] {
@@ -45,6 +46,7 @@ export async function createExpense(formData: FormData) {
   const totalAmount = Number(formData.get("amount"));
   const date = String(formData.get("date"));
   const essential = formData.get("essential") === "on";
+  const paidBy = parsePaidBy(formData.get("paidBy"));
   const nextInvoice = formData.get("nextInvoice") === "on";
   const installmentTotal = Math.max(1, Number(formData.get("installments") ?? 1));
 
@@ -61,6 +63,7 @@ export async function createExpense(formData: FormData) {
       date,
       month: resolveMonth(date, nextInvoice),
       essential,
+      paidBy,
     });
   } else {
     const groupId = crypto.randomUUID();
@@ -75,6 +78,7 @@ export async function createExpense(formData: FormData) {
         date: parcelaDate,
         month: resolveMonth(parcelaDate, nextInvoice),
         essential,
+        paidBy,
         installmentGroupId: groupId,
         installmentNumber: i + 1,
         installmentTotal,
@@ -83,6 +87,7 @@ export async function createExpense(formData: FormData) {
   }
 
   revalidatePath("/gastos");
+  revalidatePath("/transacoes");
   revalidatePath("/");
 }
 
@@ -95,6 +100,7 @@ export async function updateExpense(formData: FormData) {
   const amount = Number(formData.get("amount"));
   const date = String(formData.get("date"));
   const essential = formData.get("essential") === "on";
+  const paidBy = parsePaidBy(formData.get("paidBy"));
 
   if (!id || !categoryId || !amount || !date) {
     throw new Error("Categoria, valor e data são obrigatórios.");
@@ -118,15 +124,18 @@ export async function updateExpense(formData: FormData) {
       date,
       month: resolveMonth(date, wasNextInvoice),
       essential,
+      paidBy,
     })
     .where(eq(expenses.id, id));
 
   revalidatePath("/gastos");
+  revalidatePath("/transacoes");
   revalidatePath("/");
 }
 
 export async function deleteExpense(id: string) {
   await db.delete(expenses).where(eq(expenses.id, id));
   revalidatePath("/gastos");
+  revalidatePath("/transacoes");
   revalidatePath("/");
 }

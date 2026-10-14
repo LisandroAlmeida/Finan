@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  PieChart,
   Plus,
   Settings,
   Target,
@@ -34,27 +35,27 @@ type MenuItem = {
 const MENU: MenuItem[] = [
   { href: "/", label: "Visão Geral", icon: LayoutDashboard, matches: ["/"] },
   {
-    href: "/gastos",
+    href: "/transacoes",
     label: "Transações",
     icon: ArrowLeftRight,
-    matches: ["/gastos", "/entradas", "/assinaturas"],
+    matches: ["/transacoes", "/assinaturas"],
   },
-  { href: "/reservas", label: "Metas & Sonhos", icon: Target, matches: ["/reservas"] },
+  { href: "/orcamentos", label: "Orçamentos", icon: PieChart, matches: ["/orcamentos"] },
+  { href: "/metas", label: "Metas & Sonhos", icon: Target, matches: ["/metas"] },
   {
     href: "/cartoes",
     label: "Contas & Cartões",
     icon: Wallet,
     matches: ["/cartoes", "/contas"],
   },
-  { href: "/categorias", label: "Configurações", icon: Settings, matches: ["/categorias"] },
+  { href: "/configuracoes", label: "Configurações", icon: Settings, matches: ["/configuracoes"] },
 ];
 
 const SECTION_TABS: { matches: string[]; tabs: { href: string; label: string }[] }[] = [
   {
-    matches: ["/gastos", "/entradas", "/assinaturas"],
+    matches: ["/transacoes", "/assinaturas"],
     tabs: [
-      { href: "/gastos", label: "Gastos" },
-      { href: "/entradas", label: "Entradas" },
+      { href: "/transacoes", label: "Transações" },
       { href: "/assinaturas", label: "Assinaturas" },
     ],
   },
@@ -67,7 +68,7 @@ const SECTION_TABS: { matches: string[]; tabs: { href: string; label: string }[]
   },
 ];
 
-const MONTH_PATHS = ["/", "/gastos", "/entradas", "/cartoes", "/contas"];
+const MONTH_PATHS = ["/", "/transacoes", "/orcamentos", "/assinaturas", "/cartoes", "/contas"];
 
 function isActive(pathname: string, matches: string[]) {
   return matches.some((m) => (m === "/" ? pathname === "/" : pathname.startsWith(m)));
@@ -230,7 +231,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="ml-auto flex items-center gap-3">
             <Link
-              href="/gastos#novo"
+              href="/transacoes?novo=1"
               prefetch={false}
               className="inline-flex h-8 items-center gap-1.5 rounded-[17px] bg-primary px-3 text-xs font-medium text-primary-foreground transition-colors hover:brightness-110"
             >

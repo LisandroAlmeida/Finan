@@ -9,6 +9,7 @@ import {
   integer,
   timestamp,
   pgEnum,
+  unique,
   type AnyPgColumn,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
@@ -21,6 +22,10 @@ export const goalKeyEnum = pgEnum("goal_key", [
   "reserva_emergencia",
   "aumento_renda",
 ]);
+// Quem pagou (gastos) / quem recebeu (entradas). Nulo = não informado.
+export const paidByEnum = pgEnum("paid_by", ["lisandro", "lety", "casal"]);
+// Categorias de despesa e de receita aparecem em listas separadas.
+export const categoryKindEnum = pgEnum("category_kind", ["despesa", "receita"]);
 export const uberExpenseCategoryEnum = pgEnum("uber_expense_category", [
   "combustivel",
   "manutencao",
@@ -57,6 +62,7 @@ export const categories = pgTable("categories", {
   name: text("name").notNull(),
   color: text("color").notNull().default("#3B82F6"),
   icon: text("icon"), // nome do emoji/ícone, ex: "shopping-cart"
+  kind: categoryKindEnum("kind").notNull().default("despesa"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -67,7 +73,7 @@ export const accounts = pgTable("accounts", {
   bank: text("bank").notNull(), // chave usada pra achar o logo, ex: "bradesco", "nubank"
   type: accountTypeEnum("type").notNull().default("cartao"),
   closingDay: integer("closing_day"), // não usado hoje: o dia de fechamento muda mês a mês, então
-  // a fatura de cada gasto é decidida na hora do lançamento (flag "cai na fatura seguinte" em Gastos)
+  // a fatura de cada gasto é decidida na hora do lançamento (flag "cai na fatura seguinte" em Transações)
   dueDay: integer("due_day"), // dia de vencimento
   // Cartão adicional: aponta pro cartão titular. Cartões adicionais
   // compartilham UMA fatura só com o titular (ex: Lety/Lisandro 02/Lisandro
@@ -91,6 +97,11 @@ export const incomes = pgTable("incomes", {
   description: text("description").notNull(), // ex: "Lisandro", "Esposa"
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
   month: date("month", { mode: "string" }).notNull(), // sempre dia 1, ex: "2026-08-01"
+  // Campos novos (Transações unificadas): entradas antigas não têm data/conta/categoria.
+  date: date("date", { mode: "string" }),
+  accountId: uuid("account_id").references(() => accounts.id, { onDelete: "set null" }),
+  categoryId: uuid("category_id").references(() => categories.id, { onDelete: "set null" }),
+  paidBy: paidByEnum("paid_by"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -122,6 +133,7 @@ export const expenses = pgTable("expenses", {
   date: date("date", { mode: "string" }).notNull(),
   month: date("month", { mode: "string" }).notNull(), // dia 1 do mês de referência (facilita filtro)
   essential: boolean("essential").notNull().default(false),
+  paidBy: paidByEnum("paid_by"),
   // parcelamento: todas as parcelas de uma compra compartilham installmentGroupId
   installmentGroupId: uuid("installment_group_id"),
   installmentNumber: integer("installment_number"), // 1..total
@@ -147,14 +159,42 @@ export const subscriptions = pgTable("subscriptions", {
 });
 
 // ---------- Reservas & investimentos ----------
+// Metas & Sonhos: cada meta tem nome, valor alvo e prazo opcional. Os aportes
+// de uma meta são linhas de `reserves` com goalId preenchido (assim o histórico
+// de reservas já existente vira o histórico de aportes).
+export const savingsGoals = pgTable("savings_goals", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  targetAmount: numeric("target_amount", { precision: 12, scale: 2 }).notNull(),
+  deadline: date("deadline", { mode: "string" }),
+  color: text("color").notNull().default("#10B981"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const reserves = pgTable("reserves", {
   id: uuid("id").primaryKey().defaultRandom(),
   name: text("name").notNull(),
   type: text("type").notNull(), // ex: "Reserva de emergência", "Renda fixa", "Ações"
   amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
   date: date("date", { mode: "string" }).notNull(),
+  goalId: uuid("goal_id").references(() => savingsGoals.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// ---------- Orçamentos (limite mensal por categoria) ----------
+export const budgets = pgTable(
+  "budgets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    categoryId: uuid("category_id")
+      .notNull()
+      .references(() => categories.id, { onDelete: "cascade" }),
+    month: date("month", { mode: "string" }).notNull(), // dia 1 do mês
+    amount: numeric("amount", { precision: 12, scale: 2 }).notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [unique("budgets_category_month_unique").on(table.categoryId, table.month)],
+);
 
 // ---------- Metas ----------
 export const goals = pgTable("goals", {
@@ -310,5 +350,30 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
   account: one(accounts, {
     fields: [subscriptions.accountId],
     references: [accounts.id],
+  }),
+}));
+
+export const incomesRelations = relations(incomes, ({ one }) => ({
+  category: one(categories, {
+    fields: [incomes.categoryId],
+    references: [categories.id],
+  }),
+  account: one(accounts, {
+    fields: [incomes.accountId],
+    references: [accounts.id],
+  }),
+}));
+
+export const budgetsRelations = relations(budgets, ({ one }) => ({
+  category: one(categories, {
+    fields: [budgets.categoryId],
+    references: [categories.id],
+  }),
+}));
+
+export const reservesRelations = relations(reserves, ({ one }) => ({
+  goal: one(savingsGoals, {
+    fields: [reserves.goalId],
+    references: [savingsGoals.id],
   }),
 }));
