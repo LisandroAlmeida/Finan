@@ -4,7 +4,6 @@ import { accounts, bills } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
 import { AccountItem } from "@/components/AccountItem";
 import { BANK_OPTIONS } from "@/lib/banks";
-import { MonthSwitcher } from "@/components/MonthSwitcher";
 import { BillSection } from "@/components/BillSection";
 import { createAccount, updateAccount, deleteAccount } from "@/lib/accounts-actions";
 
@@ -32,7 +31,6 @@ export default async function ContasPage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
-      <MonthSwitcher month={month} basePath="/contas" />
 
       <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">
         <h2 className="mb-3 font-semibold">Contas cadastradas</h2>

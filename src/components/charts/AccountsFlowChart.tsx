@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { formatCurrency } from "@/lib/format";
+import { AXIS_TICK, TOOLTIP_PROPS } from "./theme";
 
 type SortOption = "name" | "value-asc" | "value-desc";
 
@@ -35,7 +36,7 @@ export function AccountsFlowChart({
   }, [data, sort]);
 
   if (data.length === 0) {
-    return <p className="py-10 text-center text-sm text-black/50 dark:text-white/50">Sem faturas lançadas ainda.</p>;
+    return <p className="py-10 text-center text-sm text-muted-foreground">Sem faturas lançadas ainda.</p>;
   }
 
   return (
@@ -44,7 +45,7 @@ export function AccountsFlowChart({
         <select
           value={sort}
           onChange={(e) => setSort(e.target.value as SortOption)}
-          className="rounded-md border border-black/15 px-2 py-1 text-xs dark:border-white/20 dark:bg-transparent"
+          className="rounded-md border bg-card px-2 py-1 text-xs"
         >
           {SORT_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -55,12 +56,12 @@ export function AccountsFlowChart({
       </div>
       <ResponsiveContainer width="100%" height={Math.max(260, sortedData.length * 40)}>
         <BarChart data={sortedData} layout="vertical" margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
-          <XAxis type="number" tick={{ fontSize: 11 }} />
-          <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 11 }} />
-          <Tooltip formatter={(v) => formatCurrency(Number(v))} />
-          <Legend />
-          <Bar dataKey="planejado" fill="#93C5FD" radius={[0, 4, 4, 0]} />
-          <Bar dataKey="real" fill="#2563EB" radius={[0, 4, 4, 0]} />
+          <XAxis type="number" tick={AXIS_TICK} axisLine={false} tickLine={false} />
+          <YAxis type="category" dataKey="name" width={90} tick={AXIS_TICK} axisLine={false} tickLine={false} />
+          <Tooltip {...TOOLTIP_PROPS} formatter={(v) => formatCurrency(Number(v))} />
+          <Legend wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }} />
+          <Bar dataKey="planejado" fill="#475569" radius={[0, 4, 4, 0]} />
+          <Bar dataKey="real" fill="#10B981" radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
