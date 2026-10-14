@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { incomes, expenses, bills, accounts, budgets } from "@/db/schema";
 import { currentMonth, monthLabelLong, shiftMonth, toMonth } from "@/lib/month";
 import { formatCurrency, formatDate } from "@/lib/format";
+import { getPeople } from "@/lib/people";
 import { bankInfo } from "@/lib/banks";
 import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
@@ -29,6 +30,7 @@ export default async function DashboardPage({
   searchParams: Promise<{ month?: string }>;
 }) {
   const sp = await searchParams;
+  const people = await getPeople();
   const month = sp.month ?? currentMonth();
   const chartMonths = Array.from({ length: MONTHS_IN_CHART }, (_, index) =>
     shiftMonth(month, index - (MONTHS_IN_CHART - 1)),
@@ -159,7 +161,7 @@ export default async function DashboardPage({
     <main className="mx-auto max-w-6xl px-4 py-6">
       <PageHeader
         title="Visão Geral"
-        subtitle={`${monthLabelLong(month)} · conta compartilhada de Lisandro & Lety`}
+        subtitle={`${monthLabelLong(month)} · conta compartilhada de ${people[0].label} & ${people[1].label}`}
       />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

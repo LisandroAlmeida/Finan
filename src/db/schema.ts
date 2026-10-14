@@ -181,6 +181,12 @@ export const reserves = pgTable("reserves", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Configurações simples chave/valor (ex.: nomes exibidos de Lisandro, Lety e Casal).
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
 // ---------- Orçamentos (limite mensal por categoria) ----------
 export const budgets = pgTable(
   "budgets",

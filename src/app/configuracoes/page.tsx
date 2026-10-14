@@ -1,12 +1,14 @@
-import { Download, LogOut, Users } from "lucide-react";
+import { Download, LogOut } from "lucide-react";
 import { db } from "@/db";
 import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ghostButtonClass, inputClass, primaryButtonClass } from "@/components/ui";
-import { PAID_BY_OPTIONS } from "@/lib/people";
+import { getPeople } from "@/lib/people";
 import { logoutAction } from "@/app/login/actions";
 import { CategoryRow } from "./CategoryRow";
+import { FamilyForm } from "./FamilyForm";
+import { saveFamilyNames } from "./familyActions";
 import { createCategory, deleteCategory, updateCategory } from "./actions";
 
 export const dynamic = "force-dynamic";
@@ -14,27 +16,18 @@ export const dynamic = "force-dynamic";
 const DEFAULT_CATEGORY_COLOR = "#3B82F6";
 
 export default async function ConfiguracoesPage() {
-  const categoryList = await db.query.categories.findMany({ orderBy: (table, { asc }) => asc(table.name) });
+  const [people, categoryList] = await Promise.all([
+    getPeople(),
+    db.query.categories.findMany({ orderBy: (table, { asc }) => asc(table.name) }),
+  ]);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
       <PageHeader title="Configurações" subtitle="Família, categorias e preferências" />
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card title="Família" subtitle="Quem aparece em “Quem pagou”">
-          <ul className="space-y-3">
-            {PAID_BY_OPTIONS.map((person) => (
-              <li key={person.value} className="flex items-center gap-3">
-                <span
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-white"
-                  style={{ backgroundColor: person.color }}
-                >
-                  {person.value === "casal" ? <Users size={16} /> : <span className="text-xs font-semibold">{person.label.slice(0, 2)}</span>}
-                </span>
-                <span className="text-sm font-medium">{person.label}</span>
-              </li>
-            ))}
-          </ul>
+        <Card title="Família" subtitle="Nomes que aparecem em “Quem pagou” e no menu">
+          <FamilyForm people={people} saveFamilyNames={saveFamilyNames} />
         </Card>
 
         <Card title="Aparência e dados">

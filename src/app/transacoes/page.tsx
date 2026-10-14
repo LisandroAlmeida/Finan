@@ -9,7 +9,7 @@ import { Card } from "@/components/Card";
 import { KpiCard } from "@/components/KpiCard";
 import { PageHeader } from "@/components/PageHeader";
 import { ghostButtonClass, inputClass } from "@/components/ui";
-import { PAID_BY_OPTIONS } from "@/lib/people";
+import { getPeople } from "@/lib/people";
 import { createExpense, deleteExpense, updateExpense } from "@/app/gastos/actions";
 import { createIncome, deleteIncome, updateIncome } from "@/app/entradas/actions";
 import { TransactionsClient, type TransactionItem } from "./TransactionsClient";
@@ -30,7 +30,8 @@ export default async function TransacoesPage({
   const categoryFilter = params.cat ?? "";
   const personFilter = params.quem ?? "";
 
-  const [expenseRows, incomeRows, categoryList, accountList] = await Promise.all([
+  const [people, expenseRows, incomeRows, categoryList, accountList] = await Promise.all([
+    getPeople(),
     db.query.expenses.findMany({ where: eq(expenses.month, month), with: { category: true, account: true } }),
     db.query.incomes.findMany({ where: eq(incomes.month, month), with: { category: true, account: true } }),
     db.query.categories.findMany({ orderBy: (table, { asc }) => asc(table.name) }),
@@ -151,7 +152,7 @@ export default async function TransacoesPage({
             </select>
             <select name="quem" defaultValue={personFilter} className={`${inputClass} !h-9 !w-36`}>
               <option value="">Todos</option>
-              {PAID_BY_OPTIONS.map((option) => (
+              {people.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>
@@ -167,6 +168,7 @@ export default async function TransacoesPage({
           items={visibleItems}
           categories={categoryList.map((category) => ({ id: category.id, name: category.name, kind: category.kind }))}
           accounts={accountList.map((account) => ({ id: account.id, name: account.name }))}
+          people={people}
           openNewOnLoad={params.novo === "1"}
           actions={{ createExpense, updateExpense, deleteExpense, createIncome, updateIncome, deleteIncome }}
         />

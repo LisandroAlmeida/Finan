@@ -20,6 +20,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { logoutAction } from "@/app/login/actions";
+import type { Person } from "@/lib/people";
 import { currentMonth, monthLabelLong, shiftMonth } from "@/lib/month";
 
 type MenuItem = {
@@ -109,20 +110,29 @@ function MonthNav() {
   );
 }
 
-function Avatars() {
+function Avatars({ people }: { people: Person[] }) {
+  const [first, second] = people;
   return (
-    <div className="flex -space-x-2" aria-label="Lisandro e Lety">
+    <div className="flex -space-x-2" aria-label={`${first.label} e ${second.label}`}>
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-[11px] font-semibold text-white ring-2 ring-background">
-        Li
+        {first.label.slice(0, 2)}
       </span>
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600 text-[11px] font-semibold text-white ring-2 ring-background">
-        Le
+        {second.label.slice(0, 2)}
       </span>
     </div>
   );
 }
 
-function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate?: () => void }) {
+function Sidebar({
+  pathname,
+  people,
+  onNavigate,
+}: {
+  pathname: string;
+  people: Person[];
+  onNavigate?: () => void;
+}) {
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex items-center gap-3 px-4 py-4">
@@ -159,9 +169,9 @@ function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
       </nav>
 
       <div className="flex items-center gap-3 border-t border-sidebar-border px-4 py-3">
-        <Avatars />
+        <Avatars people={people} />
         <div className="min-w-0 flex-1 leading-tight">
-          <p className="truncate text-sm font-medium">Lisandro &amp; Lety</p>
+          <p className="truncate text-sm font-medium">{people[0].label} &amp; {people[1].label}</p>
           <p className="truncate text-[11px] text-muted-foreground">conta compartilhada</p>
         </div>
         <form action={logoutAction}>
@@ -179,7 +189,7 @@ function Sidebar({ pathname, onNavigate }: { pathname: string; onNavigate?: () =
   );
 }
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, people }: { children: React.ReactNode; people: Person[] }) {
   const pathname = usePathname();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -191,7 +201,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen">
       {/* Sidebar fixa (desktop) */}
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 border-r border-sidebar-border md:block">
-        <Sidebar pathname={pathname} />
+        <Sidebar pathname={pathname} people={people} />
       </aside>
 
       {/* Gaveta (mobile) */}
@@ -210,7 +220,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             >
               <X size={16} />
             </button>
-            <Sidebar pathname={pathname} onNavigate={() => setDrawerOpen(false)} />
+            <Sidebar pathname={pathname} people={people} onNavigate={() => setDrawerOpen(false)} />
           </aside>
         </div>
       )}
@@ -240,7 +250,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
             <ThemeToggle />
             <div className="hidden sm:block">
-              <Avatars />
+              <Avatars people={people} />
             </div>
           </div>
         </header>
