@@ -115,6 +115,8 @@ export const bills = pgTable("bills", {
   plannedAmount: numeric("planned_amount", { precision: 12, scale: 2 }).notNull(),
   actualAmount: numeric("actual_amount", { precision: 12, scale: 2 }),
   paidAt: date("paid_at", { mode: "string" }),
+  // Só para visualizar: não entra em totais nem na Visão Geral (ex.: fatura de cartão repetida em Contas).
+  informational: boolean("informational").notNull().default(false),
   paid: boolean("paid").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -33,7 +33,7 @@ type CardOption = { id: string; name: string };
 
 function ChipIcon() {
   return (
-    <svg width="34" height="26" viewBox="0 0 34 26" fill="none" aria-hidden>
+    <svg width="26" height="20" viewBox="0 0 34 26" fill="none" aria-hidden>
       <rect x="0.5" y="0.5" width="33" height="25" rx="4" fill="url(#chip-gradient)" stroke="rgba(0,0,0,0.25)" />
       <line x1="0" y1="8.5" x2="34" y2="8.5" stroke="rgba(0,0,0,0.25)" />
       <line x1="0" y1="17.5" x2="34" y2="17.5" stroke="rgba(0,0,0,0.25)" />
@@ -88,11 +88,11 @@ function CardVisual({
 
   return (
     <div
-      className="flex aspect-[1.586/1] w-full flex-col justify-between rounded-2xl p-4 text-white shadow-md"
+      className="flex aspect-[1.586/1] w-full flex-col justify-between rounded-xl p-3 text-white shadow-md"
       style={{ backgroundImage: bankCardGradient(account.bank) }}
     >
       <div className="flex items-start justify-between gap-2">
-        <span className="text-sm font-semibold leading-tight drop-shadow-sm">{account.name}</span>
+        <span className="text-[13px] font-semibold leading-tight drop-shadow-sm">{account.name}</span>
         {badgeText ? (
           <span className="flex shrink-0 items-center gap-1 whitespace-nowrap rounded-full bg-black/25 px-2 py-0.5 text-[10px] font-medium">
             {badgeText}
@@ -104,8 +104,8 @@ function CardVisual({
       </div>
       <ChipIcon />
       <div>
-        <p className="font-mono text-[15px] tracking-wider drop-shadow-sm">{masked}</p>
-        <p className="mt-1 text-[11px] text-white/80">
+        <p className="font-mono text-[12px] tracking-wider drop-shadow-sm">{masked}</p>
+        <p className="mt-0.5 text-[10px] text-white/80">
           Validade {validity}
           {parentName && <> · Adicional de {parentName}</>}
         </p>
