@@ -25,6 +25,12 @@ export function monthLabel(month: string): string {
   return `${MESES[m - 1]} ${year}`;
 }
 
+/** "2026-10-01" -> "Outubro de 2026" */
+export function monthLabelLong(month: string): string {
+  const [year, m] = month.split("-").map(Number);
+  return `${MESES[m - 1]} de ${year}`;
+}
+
 /** Soma/subtrai meses a partir de uma referência "YYYY-MM-01". */
 export function shiftMonth(month: string, delta: number): string {
   const [year, m] = month.split("-").map(Number);

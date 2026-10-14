@@ -4,7 +4,6 @@ import { db } from "@/db";
 import { expenses, accounts } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
 import { formatCurrency } from "@/lib/format";
-import { MonthSwitcher } from "@/components/MonthSwitcher";
 import { ExpenseRow } from "./ExpenseRow";
 import { createExpense, updateExpense, deleteExpense } from "./actions";
 
@@ -33,7 +32,6 @@ export default async function GastosPage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
-      <MonthSwitcher month={month} basePath="/gastos" />
 
       <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">
         <h2 className="mb-3 font-semibold">Novo gasto</h2>

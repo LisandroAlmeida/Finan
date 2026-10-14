@@ -5,7 +5,6 @@ import { currentMonth } from "@/lib/month";
 import { CardGroup } from "@/components/CardGroup";
 import { BANK_OPTIONS } from "@/lib/banks";
 import { EXPIRY_MONTHS, expiryYearOptions } from "@/lib/cardExpiry";
-import { MonthSwitcher } from "@/components/MonthSwitcher";
 import { BillSection } from "@/components/BillSection";
 import { createAccount, updateAccount, deleteAccount } from "@/lib/accounts-actions";
 
@@ -43,7 +42,6 @@ export default async function CartoesPage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
-      <MonthSwitcher month={month} basePath="/cartoes" />
 
       <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">
         <h2 className="mb-3 font-semibold">Cartões cadastrados</h2>

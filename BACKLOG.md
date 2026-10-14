@@ -5,7 +5,26 @@ parte do histórico de commits — isso aqui é só o que ainda está pra fazer.
 
 ## Em andamento / próximos passos
 
-_(nada em aberto no momento — próximos itens entram aqui conforme surgem)_
+**Redesign no estilo "Meu Orçamento"** (branch `redesign-meu-orcamento`). Referência:
+app gerado pelo Emergent que o Lisandro mostrou como a ideia original. Nomes: Lisandro,
+Lety e Casal. Todos os valores já lançados são mantidos. Assinaturas viram categoria
+dentro de Transações; Cartões (logo, adicionais, fatura, parcelas) devem ser mantidos.
+
+- [x] Fase 1: tokens (claro/escuro), fontes (Plus Jakarta Sans, DM Sans, JetBrains Mono),
+  sidebar de 256px, topbar com seletor de mês, alternador de tema, botão Sair.
+- [x] Fase 2: Visão Geral (KPIs, Receitas × Despesas em 6 meses, rosca por categoria,
+  transações recentes, metas, gastos por cartão, fluxo de contas).
+- [ ] Fase 3: Transações unificadas (Gastos + Entradas, modal Despesa/Receita, coluna
+  "Quem pagou" Lisandro/Lety/Casal, Assinaturas como categoria).
+- [ ] Fase 4: Orçamentos (limite mensal por categoria, barras verde/âmbar/vermelho).
+- [ ] Fase 5: Metas & Sonhos (metas livres com "Registrar aporte").
+- [ ] Fase 6: Contas & Cartões no novo layout, com patrimônio total e saldo por conta
+  (precisa de saldo inicial em `accounts`). Trocar o KPI "Reservas e investimentos" da
+  Visão Geral por "Saldo em contas".
+- [ ] Fase 7: Configurações (Família, Categorias de despesa/receita, Aparência, Exportar CSV).
+
+Telas ainda não migradas (Gastos, Entradas, Assinaturas, Contas, Cartões, Reservas,
+Categorias) já rodam dentro do novo shell, agrupadas por abas no menu mais parecido.
 
 ## Ideias sem prioridade definida ainda
 

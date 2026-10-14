@@ -3,7 +3,6 @@ import { db } from "@/db";
 import { incomes } from "@/db/schema";
 import { currentMonth } from "@/lib/month";
 import { formatCurrency } from "@/lib/format";
-import { MonthSwitcher } from "@/components/MonthSwitcher";
 import { IncomeRow } from "./IncomeRow";
 import { createIncome, updateIncome, deleteIncome } from "./actions";
 
@@ -26,7 +25,6 @@ export default async function EntradasPage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
-      <MonthSwitcher month={month} basePath="/entradas" />
 
       <section className="mt-4 rounded-xl border border-black/10 p-4 dark:border-white/10">
         <h2 className="mb-3 font-semibold">Nova entrada</h2>
