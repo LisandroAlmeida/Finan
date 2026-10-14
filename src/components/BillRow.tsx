@@ -11,6 +11,7 @@ type Bill = {
   actualAmount: string | null;
   paidAt: string | null;
   paid: boolean;
+  informational: boolean;
   account: { bank: string; name: string } | null;
 };
 
@@ -85,6 +86,9 @@ export function BillRow({
             <label className="flex items-center gap-1.5 pb-2 text-sm">
               <input name="paid" type="checkbox" defaultChecked={bill.paid} /> Pago
             </label>
+            <label className="flex items-center gap-1.5 pb-2 text-sm">
+              <input name="informational" type="checkbox" defaultChecked={bill.informational} /> Só visualização
+            </label>
             <div className="flex gap-2">
               <button
                 type="submit"
@@ -108,11 +112,16 @@ export function BillRow({
   }
 
   return (
-    <tr className="border-t border">
+    <tr className={`border-t border ${bill.informational ? "text-muted-foreground" : ""}`}>
       <td className="px-2 py-2">
         <div className="flex items-center gap-1.5">
           <BankBadge bank={bill.account!.bank} size={18} />
           <span className="text-foreground">{bill.account!.name}</span>
+          {bill.informational && (
+            <span className="rounded-full border px-2 py-0.5 text-[10px] text-muted-foreground">
+              só visualização
+            </span>
+          )}
         </div>
       </td>
       <td className="px-2 py-2">{formatCurrency(bill.plannedAmount)}</td>

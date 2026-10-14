@@ -10,6 +10,7 @@ type Bill = {
   actualAmount: string | null;
   paidAt: string | null;
   paid: boolean;
+  informational: boolean;
   account: { bank: string; name: string } | null;
 };
 
@@ -24,8 +25,10 @@ export function BillSection({
   accountsWithoutBill: AccountOption[];
   billList: Bill[];
 }) {
-  const totalPlanned = billList.reduce((s, b) => s + Number(b.plannedAmount), 0);
-  const totalActual = billList.reduce((s, b) => s + Number(b.actualAmount ?? 0), 0);
+  // Faturas "só visualização" aparecem na lista, mas não entram nos totais.
+  const countedBills = billList.filter((b) => !b.informational);
+  const totalPlanned = countedBills.reduce((s, b) => s + Number(b.plannedAmount), 0);
+  const totalActual = countedBills.reduce((s, b) => s + Number(b.actualAmount ?? 0), 0);
 
   return (
     <section className="mt-6 rounded-2xl border bg-card p-4">
@@ -60,6 +63,9 @@ export function BillSection({
               className="w-32 rounded-lg border px-2 py-1.5"
             />
           </div>
+          <label className="flex items-center gap-1.5 pb-2 text-sm text-muted-foreground">
+            <input name="informational" type="checkbox" /> Só visualização
+          </label>
           <button className="rounded-lg bg-primary px-4 py-1.5 text-white hover:brightness-110">
             Lançar fatura
           </button>

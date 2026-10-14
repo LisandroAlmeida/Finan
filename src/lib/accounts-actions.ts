@@ -127,6 +127,7 @@ export async function upsertBill(formData: FormData) {
     accountId,
     month,
     plannedAmount: plannedAmount.toFixed(2),
+    informational: formData.get("informational") === "on",
   });
 
   revalidatePath(redirectPath);
@@ -152,6 +153,7 @@ export async function updateBill(formData: FormData) {
       actualAmount: actualAmountRaw ? Number(actualAmountRaw).toFixed(2) : null,
       paidAt: paidAtRaw || null,
       paid,
+      informational: formData.get("informational") === "on",
     })
     .where(eq(bills.id, id));
 

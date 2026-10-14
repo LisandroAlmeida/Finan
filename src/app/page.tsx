@@ -66,7 +66,7 @@ export default async function DashboardPage({
       .filter((row) => row.month === targetMonth && row.account?.type !== "cartao")
       .reduce((sum, row) => sum + Number(row.amount), 0);
     const billsTotal = billRows
-      .filter((row) => row.month === targetMonth)
+      .filter((row) => row.month === targetMonth && !row.informational)
       .reduce((sum, row) => sum + Number(row.actualAmount ?? row.plannedAmount), 0);
     return { income, spent: nonCardExpenses + billsTotal };
   }
@@ -86,7 +86,7 @@ export default async function DashboardPage({
   });
 
   const monthExpenses = expenseRows.filter((row) => row.month === month);
-  const monthBills = billRows.filter((row) => row.month === month);
+  const monthBills = billRows.filter((row) => row.month === month && !row.informational);
 
   // Cartões adicionais (Lety, Lisandro 23...) somam junto com o titular
   // (Bradesco), do mesmo jeito que a fatura consolidada em Cartões.

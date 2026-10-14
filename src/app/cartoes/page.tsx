@@ -49,7 +49,7 @@ export default async function CartoesPage({
         <h2 className="mb-3 font-semibold">Cartões cadastrados</h2>
 
         {accountList.length > 0 && (
-          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             {topLevelAccounts.map((a) => (
               <CardGroup
                 key={a.id}
