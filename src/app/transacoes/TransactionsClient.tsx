@@ -11,7 +11,7 @@ import {
   primaryButtonClass,
 } from "@/components/ui";
 import { formatCurrency, formatDate } from "@/lib/format";
-import { PAID_BY_OPTIONS } from "@/lib/people";
+import type { Person } from "@/lib/people";
 
 export type TransactionKind = "despesa" | "receita";
 
@@ -41,12 +41,14 @@ export function TransactionsClient({
   items,
   categories,
   accounts,
+  people,
   openNewOnLoad,
   actions,
 }: {
   items: TransactionItem[];
   categories: CategoryOption[];
   accounts: AccountOption[];
+  people: Person[];
   openNewOnLoad: boolean;
   actions: {
     createExpense: ServerAction;
@@ -86,7 +88,7 @@ export function TransactionsClient({
         <ul className="divide-y">
           {items.map((item) => {
             const isIncome = item.kind === "receita";
-            const person = PAID_BY_OPTIONS.find((option) => option.value === item.paidBy);
+            const person = people.find((option) => option.value === item.paidBy);
             const color = item.categoryColor ?? (isIncome ? "#10B981" : "#F43F5E");
             return (
               <li key={`${item.kind}-${item.id}`} className="flex items-center gap-3 py-3">
@@ -161,6 +163,7 @@ export function TransactionsClient({
           editing={formState.mode === "edit" ? formState.item : null}
           categories={categories}
           accounts={accounts}
+          people={people}
           actions={actions}
           onClose={() => setFormState(null)}
         />
@@ -173,12 +176,14 @@ function TransactionModal({
   editing,
   categories,
   accounts,
+  people,
   actions,
   onClose,
 }: {
   editing: TransactionItem | null;
   categories: CategoryOption[];
   accounts: AccountOption[];
+  people: Person[];
   actions: {
     createExpense: ServerAction;
     updateExpense: ServerAction;
@@ -301,7 +306,7 @@ function TransactionModal({
         <div>
           <label className={labelClass}>{isExpense ? "Quem pagou" : "Quem recebeu"}</label>
           <div className="grid grid-cols-4 gap-2">
-            {[{ value: "", label: "—", color: "#71717A" }, ...PAID_BY_OPTIONS].map((option) => (
+            {[{ value: "", label: "—", color: "#71717A" }, ...people].map((option) => (
               <label key={option.value} className="cursor-pointer">
                 <input
                   type="radio"
