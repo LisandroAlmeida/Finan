@@ -56,25 +56,25 @@ export function SubscriptionRow({
 
   if (editing) {
     return (
-      <tr className="border-t border-black/10 dark:border-white/10">
+      <tr className="border-t border">
         <td colSpan={7} className="px-3 py-3">
           <form action={handleSave} className="flex flex-wrap items-end gap-3">
             <input type="hidden" name="id" value={subscription.id} />
             <div className="flex flex-col">
-              <label className="text-xs text-black/60 dark:text-white/60">Nome</label>
+              <label className="text-xs text-muted-foreground">Nome</label>
               <input
                 name="name"
                 required
                 defaultValue={subscription.name}
-                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="rounded-lg border px-2 py-1.5"
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-xs text-black/60 dark:text-white/60">Categoria</label>
+              <label className="text-xs text-muted-foreground">Categoria</label>
               <select
                 name="categoryId"
                 defaultValue={subscription.category?.id ?? ""}
-                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="rounded-lg border px-2 py-1.5"
               >
                 <option value="">-</option>
                 {categoryList.map((c) => (
@@ -85,11 +85,11 @@ export function SubscriptionRow({
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="text-xs text-black/60 dark:text-white/60">Forma de pagamento</label>
+              <label className="text-xs text-muted-foreground">Forma de pagamento</label>
               <select
                 name="accountId"
                 defaultValue={subscription.account?.id ?? ""}
-                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="rounded-lg border px-2 py-1.5"
               >
                 <option value="">-</option>
                 {accountList.map((a) => (
@@ -100,7 +100,7 @@ export function SubscriptionRow({
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="text-xs text-black/60 dark:text-white/60">Valor (R$)</label>
+              <label className="text-xs text-muted-foreground">Valor (R$)</label>
               <input
                 name="amount"
                 type="number"
@@ -108,42 +108,42 @@ export function SubscriptionRow({
                 min="0"
                 required
                 defaultValue={subscription.amount}
-                className="w-28 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="w-28 rounded-lg border px-2 py-1.5"
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-xs text-black/60 dark:text-white/60">Ciclo</label>
+              <label className="text-xs text-muted-foreground">Ciclo</label>
               <select
                 name="billingCycle"
                 defaultValue={subscription.billingCycle}
-                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="rounded-lg border px-2 py-1.5"
               >
                 <option value="mensal">Mensal</option>
                 <option value="anual">Anual</option>
               </select>
             </div>
             <div className="flex flex-col">
-              <label className="text-xs text-black/60 dark:text-white/60">Próxima cobrança</label>
+              <label className="text-xs text-muted-foreground">Próxima cobrança</label>
               <input
                 name="nextChargeDate"
                 type="date"
                 required
                 defaultValue={subscription.nextChargeDate}
-                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="rounded-lg border px-2 py-1.5"
               />
             </div>
             <div className="flex gap-2">
               <button
                 type="submit"
                 disabled={pending}
-                className="rounded-md bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700 disabled:opacity-50"
+                className="rounded-lg bg-primary px-3 py-1.5 text-xs text-white hover:brightness-110 disabled:opacity-50"
               >
                 Salvar
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="rounded-md border border-black/15 px-3 py-1.5 text-xs dark:border-white/20"
+                className="rounded-lg border px-3 py-1.5 text-xs"
               >
                 Cancelar
               </button>
@@ -155,7 +155,7 @@ export function SubscriptionRow({
   }
 
   return (
-    <tr className="border-t border-black/10 dark:border-white/10">
+    <tr className="border-t border">
       <td className="px-3 py-2">{subscription.name}</td>
       <td className="px-3 py-2">
         {subscription.category ? (
@@ -186,7 +186,7 @@ export function SubscriptionRow({
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="text-xs text-blue-600 hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             editar
           </button>
@@ -202,7 +202,7 @@ export function SubscriptionRow({
             confirmMessage={`Excluir a assinatura "${subscription.name}"? Essa ação não pode ser desfeita.`}
             pending={pending}
             onConfirm={handleDelete}
-            className="text-xs text-red-600 hover:underline"
+            className="text-xs text-destructive hover:underline"
           />
         </div>
       </td>

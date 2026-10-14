@@ -53,7 +53,7 @@ export function CardGroup({
         deleteAccount={deleteAccount}
       />
       {hasAdditionalCards && expanded && (
-        <div className="flex flex-col gap-2 border-l-2 border-black/10 pl-3 dark:border-white/10">
+        <div className="flex flex-col gap-2 border-l-2 pl-3">
           {additionalCards.map((child) => (
             <AccountItem
               key={child.id}

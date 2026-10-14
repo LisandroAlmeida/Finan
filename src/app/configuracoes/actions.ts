@@ -7,8 +7,9 @@ import { categories } from "@/db/schema";
 
 function revalidateEverywhere() {
   // Categorias aparecem em vários formulários (Gastos, Assinaturas, Dashboard).
-  revalidatePath("/categorias");
-  revalidatePath("/gastos");
+  revalidatePath("/configuracoes");
+  revalidatePath("/transacoes");
+  revalidatePath("/orcamentos");
   revalidatePath("/assinaturas");
   revalidatePath("/");
 }
@@ -19,7 +20,9 @@ export async function createCategory(formData: FormData) {
 
   if (!name) throw new Error("Nome da categoria é obrigatório.");
 
-  await db.insert(categories).values({ name, color: color || "#3B82F6" });
+  const kind = formData.get("kind") === "receita" ? "receita" : "despesa";
+
+  await db.insert(categories).values({ name, color: color || "#3B82F6", kind });
 
   revalidateEverywhere();
 }
@@ -44,7 +47,7 @@ export async function deleteCategory(id: string) {
     await db.delete(categories).where(eq(categories.id, id));
   } catch {
     throw new Error(
-      "Não dá pra excluir essa categoria porque ela já tem gastos ou assinaturas lançados nela. " +
+      "Não dá pra excluir essa categoria porque ela já tem lançamentos ou assinaturas. " +
         "Edite ou exclua esses lançamentos primeiro, ou apenas renomeie a categoria.",
     );
   }

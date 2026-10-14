@@ -73,7 +73,7 @@ export const accounts = pgTable("accounts", {
   bank: text("bank").notNull(), // chave usada pra achar o logo, ex: "bradesco", "nubank"
   type: accountTypeEnum("type").notNull().default("cartao"),
   closingDay: integer("closing_day"), // não usado hoje: o dia de fechamento muda mês a mês, então
-  // a fatura de cada gasto é decidida na hora do lançamento (flag "cai na fatura seguinte" em Gastos)
+  // a fatura de cada gasto é decidida na hora do lançamento (flag "cai na fatura seguinte" em Transações)
   dueDay: integer("due_day"), // dia de vencimento
   // Cartão adicional: aponta pro cartão titular. Cartões adicionais
   // compartilham UMA fatura só com o titular (ex: Lety/Lisandro 02/Lisandro

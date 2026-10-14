@@ -1,7 +1,7 @@
-import { and, desc, eq, gte, lte } from "drizzle-orm";
+import { and, eq, gte, lte } from "drizzle-orm";
 import { ArrowDownRight, PiggyBank, Scale, TrendingDown, TrendingUp } from "lucide-react";
 import { db } from "@/db";
-import { incomes, expenses, bills, goals, accounts } from "@/db/schema";
+import { incomes, expenses, bills, accounts, budgets } from "@/db/schema";
 import { currentMonth, monthLabelLong, shiftMonth, toMonth } from "@/lib/month";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { bankInfo } from "@/lib/banks";
@@ -12,12 +12,13 @@ import { GoalCard } from "@/components/GoalCard";
 import { IncomeExpenseChart } from "@/components/charts/IncomeExpenseChart";
 import { CategoryAllocationChart } from "@/components/charts/CategoryAllocationChart";
 import { AccountsFlowChart } from "@/components/charts/AccountsFlowChart";
+import { budgetBarColor } from "@/lib/budget";
 import { CardSpendingChart } from "@/components/charts/CardSpendingChart";
 
 export const dynamic = "force-dynamic";
 
-const RESERVE_TYPE_EMERGENCIA = "Reserva de emergência";
-const RESERVE_TYPE_RENDA = "Aumentar renda";
+const GOALS_ON_DASHBOARD = 3;
+const BUDGETS_ON_DASHBOARD = 6;
 const MONTHS_IN_CHART = 6;
 const RECENT_TRANSACTIONS_LIMIT = 8;
 const SHORT_MONTH_LABELS = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
@@ -34,7 +35,7 @@ export default async function DashboardPage({
   );
   const firstChartMonth = chartMonths[0];
 
-  const [incomeRows, expenseRows, billRows, reserveRows, goalRows, cardAccounts] = await Promise.all([
+  const [incomeRows, expenseRows, billRows, reserveRows, goalRows, cardAccounts, budgetRows] = await Promise.all([
     db.query.incomes.findMany({ where: and(gte(incomes.month, firstChartMonth), lte(incomes.month, month)) }),
     db.query.expenses.findMany({
       where: and(gte(expenses.month, firstChartMonth), lte(expenses.month, month)),
@@ -45,11 +46,12 @@ export default async function DashboardPage({
       with: { account: true },
     }),
     db.query.reserves.findMany(),
-    db.query.goals.findMany({ orderBy: desc(goals.month) }),
+    db.query.savingsGoals.findMany({ orderBy: (table, { asc }) => asc(table.createdAt) }),
     db.query.accounts.findMany({ where: eq(accounts.type, "cartao") }),
+    db.query.budgets.findMany({ where: eq(budgets.month, month), with: { category: true } }),
   ]);
 
-  // Compra no cartão é lançada em Gastos no mês da compra, mas o dinheiro só
+  // Compra no cartão é lançada em Transações no mês da compra, mas o dinheiro só
   // sai de fato quando a fatura é paga — e aquele pagamento já entra nas
   // faturas ("bills", via "Fatura do mês" em Cartões). Somar as duas coisas
   // contaria a mesma compra duas vezes, então pro fluxo de caixa do mês só
@@ -127,16 +129,31 @@ export default async function DashboardPage({
     .sort((a, b) => b.date.localeCompare(a.date) || b.createdAt.getTime() - a.createdAt.getTime())
     .slice(0, RECENT_TRANSACTIONS_LIMIT);
 
-  function goalCardProps(key: "reserva_emergencia" | "aumento_renda", reserveType: string) {
-    const goal = goalRows.find((row) => row.key === key);
-    const target = goal ? Number(goal.targetAmount) : 0;
-    const matching = reserveRows.filter((row) => row.type === reserveType);
-    const reservedTotal = matching.reduce((sum, row) => sum + Number(row.amount), 0);
-    const reservedThisMonth = matching
-      .filter((row) => toMonth(row.date) === month)
-      .reduce((sum, row) => sum + Number(row.amount), 0);
-    return { target, reservedThisMonth, totalReserved: reservedTotal };
+  const goalCards = goalRows.slice(0, GOALS_ON_DASHBOARD).map((goal) => {
+    const goalReserves = reserveRows.filter((row) => row.goalId === goal.id);
+    return {
+      id: goal.id,
+      title: goal.name,
+      target: Number(goal.targetAmount),
+      totalReserved: goalReserves.reduce((sum, row) => sum + Number(row.amount), 0),
+      reservedThisMonth: goalReserves
+        .filter((row) => toMonth(row.date) === month)
+        .reduce((sum, row) => sum + Number(row.amount), 0),
+    };
+  });
+
+  const spentByCategory = new Map<string, number>();
+  for (const expense of monthExpenses) {
+    spentByCategory.set(expense.categoryId, (spentByCategory.get(expense.categoryId) ?? 0) + Number(expense.amount));
   }
+  const budgetUsage = budgetRows
+    .map((budget) => {
+      const limit = Number(budget.amount);
+      const spent = spentByCategory.get(budget.categoryId) ?? 0;
+      return { id: budget.id, name: budget.category.name, color: budget.category.color, limit, spent, ratio: limit ? spent / limit : 0 };
+    })
+    .sort((a, b) => b.ratio - a.ratio)
+    .slice(0, BUDGETS_ON_DASHBOARD);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
@@ -194,7 +211,7 @@ export default async function DashboardPage({
         <Card
           title="Transações recentes"
           subtitle="Os últimos lançamentos da família"
-          action={{ href: "/gastos", label: "Ver todas →" }}
+          action={{ href: "/transacoes", label: "Ver todas →" }}
           className="lg:col-span-2"
         >
           {recentTransactions.length === 0 ? (
@@ -244,15 +261,17 @@ export default async function DashboardPage({
         <Card
           title="Metas & Sonhos"
           subtitle="O que vocês estão construindo"
-          action={{ href: "/reservas", label: "Ver metas" }}
+          action={{ href: "/metas", label: "Ver metas" }}
         >
-          <div className="space-y-5">
-            <GoalCard
-              title="Reserva de emergência"
-              {...goalCardProps("reserva_emergencia", RESERVE_TYPE_EMERGENCIA)}
-            />
-            <GoalCard title="Aumentar a renda" {...goalCardProps("aumento_renda", RESERVE_TYPE_RENDA)} />
-          </div>
+          {goalCards.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma meta criada ainda.</p>
+          ) : (
+            <div className="space-y-5">
+              {goalCards.map(({ id, ...goalProps }) => (
+                <GoalCard key={id} {...goalProps} />
+              ))}
+            </div>
+          )}
         </Card>
       </div>
 
@@ -263,6 +282,42 @@ export default async function DashboardPage({
 
         <Card title="Fluxo de contas" subtitle="Faturas e contas: planejado × real" className="lg:col-span-2">
           <AccountsFlowChart data={accountsFlowData} />
+        </Card>
+      </div>
+
+      <div className="mt-4">
+        <Card
+          title="Orçamentos"
+          subtitle="Categorias mais perto do limite neste mês"
+          action={{ href: "/orcamentos", label: "Ver orçamentos" }}
+        >
+          {budgetUsage.length === 0 ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">
+              Nenhum limite definido para este mês. Defina em Orçamentos.
+            </p>
+          ) : (
+            <ul className="grid grid-cols-1 gap-x-8 gap-y-4 md:grid-cols-2">
+              {budgetUsage.map((usage) => (
+                <li key={usage.id}>
+                  <div className="flex items-center justify-between gap-3 text-sm">
+                    <span className="flex min-w-0 items-center gap-2">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: usage.color }} />
+                      <span className="truncate font-medium">{usage.name}</span>
+                    </span>
+                    <span className="num shrink-0 text-xs text-muted-foreground">
+                      {formatCurrency(usage.spent)} / {formatCurrency(usage.limit)}
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full"
+                      style={{ width: `${Math.min(usage.ratio, 1) * 100}%`, backgroundColor: budgetBarColor(usage.ratio) }}
+                    />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
       </div>
     </main>

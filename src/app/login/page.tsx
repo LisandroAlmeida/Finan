@@ -10,9 +10,9 @@ export default async function LoginPage({
 
   return (
     <main className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-xl border border-black/10 p-6 dark:border-white/10">
+      <div className="w-full max-w-sm rounded-2xl border bg-card p-6">
         <h1 className="mb-1 text-center text-xl font-semibold">💰 Finanças</h1>
-        <p className="mb-6 text-center text-sm text-black/50 dark:text-white/50">
+        <p className="mb-6 text-center text-sm text-muted-foreground">
           Digite a senha de acesso
         </p>
         <form action={loginAction} className="flex flex-col gap-3">
@@ -22,10 +22,10 @@ export default async function LoginPage({
             required
             autoFocus
             placeholder="Senha"
-            className="rounded-md border border-black/15 px-3 py-2 dark:border-white/20 dark:bg-transparent"
+            className="h-10 rounded-xl border bg-background px-3 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30"
           />
-          {hasError && <p className="text-sm text-red-600">Senha incorreta.</p>}
-          <button className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+          {hasError && <p className="text-sm text-destructive">Senha incorreta.</p>}
+          <button className="h-10 rounded-[17px] bg-primary px-4 text-sm font-medium text-primary-foreground hover:brightness-110">
             Entrar
           </button>
         </form>

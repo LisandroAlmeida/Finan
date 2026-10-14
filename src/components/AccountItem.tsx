@@ -151,26 +151,26 @@ export function AccountItem({
 
   if (editing) {
     return (
-      <div className="rounded-2xl border border-black/10 p-3 text-sm dark:border-white/10">
+      <div className="rounded-2xl border p-3 text-sm">
         <form action={handleSave} className="flex flex-col gap-2">
           <input type="hidden" name="id" value={account.id} />
           <input type="hidden" name="type" value={account.type} />
           <div className="flex flex-col">
-            <label className="text-xs text-foreground/60">Nome</label>
+            <label className="text-xs text-muted-foreground">Nome</label>
             <input
               name="name"
               required
               defaultValue={account.name}
-              className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+              className="rounded-lg border px-2 py-1.5"
             />
           </div>
           <div className="flex flex-wrap gap-2">
             <div className="flex flex-1 flex-col">
-              <label className="text-xs text-foreground/60">Banco</label>
+              <label className="text-xs text-muted-foreground">Banco</label>
               <select
                 name="bank"
                 defaultValue={account.bank}
-                className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="rounded-lg border px-2 py-1.5"
               >
                 {BANK_OPTIONS.map((b) => (
                   <option key={b.value} value={b.value}>
@@ -182,23 +182,23 @@ export function AccountItem({
           </div>
           <div className="flex flex-wrap gap-2">
             <div className="flex flex-col">
-              <label className="text-xs text-foreground/60">Dia vencimento</label>
+              <label className="text-xs text-muted-foreground">Dia vencimento</label>
               <input
                 name="dueDay"
                 type="number"
                 min="1"
                 max="31"
                 defaultValue={account.dueDay ?? ""}
-                className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                className="w-24 rounded-lg border px-2 py-1.5"
               />
             </div>
             {account.type === "conta" && (
               <div className="flex flex-col">
-                <label className="text-xs text-foreground/60">Forma de pagamento</label>
+                <label className="text-xs text-muted-foreground">Forma de pagamento</label>
                 <select
                   name="paymentMethod"
                   defaultValue={account.paymentMethod ?? ""}
-                  className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                  className="rounded-lg border px-2 py-1.5"
                 >
                   <option value="">Não informado</option>
                   <option value="boleto">Boleto</option>
@@ -209,11 +209,11 @@ export function AccountItem({
             {account.type === "cartao" && (
               <>
                 <div className="flex flex-col">
-                  <label className="text-xs text-foreground/60">Cartão adicional de</label>
+                  <label className="text-xs text-muted-foreground">Cartão adicional de</label>
                   <select
                     name="parentAccountId"
                     defaultValue={account.parentAccountId ?? ""}
-                    className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                    className="rounded-lg border px-2 py-1.5"
                   >
                     <option value="">Titular</option>
                     {(cardOptions ?? []).map((o) => (
@@ -224,23 +224,23 @@ export function AccountItem({
                   </select>
                 </div>
                 <div className="flex flex-col">
-                  <label className="text-xs text-foreground/60">Últimos 4 dígitos</label>
+                  <label className="text-xs text-muted-foreground">Últimos 4 dígitos</label>
                   <input
                     name="lastFourDigits"
                     maxLength={4}
                     inputMode="numeric"
                     pattern="[0-9]{0,4}"
                     defaultValue={account.lastFourDigits ?? ""}
-                    className="w-24 rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                    className="w-24 rounded-lg border px-2 py-1.5"
                   />
                 </div>
                 <div className="flex flex-col">
-                  <label className="text-xs text-foreground/60">Validade</label>
+                  <label className="text-xs text-muted-foreground">Validade</label>
                   <div className="flex items-center gap-1">
                     <select
                       name="expiryMonth"
                       defaultValue={account.expiryMonth ?? ""}
-                      className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                      className="rounded-lg border px-2 py-1.5"
                     >
                       <option value="">MM</option>
                       {EXPIRY_MONTHS.map((m) => (
@@ -253,7 +253,7 @@ export function AccountItem({
                     <select
                       name="expiryYear"
                       defaultValue={account.expiryYear ?? ""}
-                      className="rounded-md border border-black/15 px-2 py-1.5 dark:border-white/20 dark:bg-transparent"
+                      className="rounded-lg border px-2 py-1.5"
                     >
                       <option value="">AA</option>
                       {expiryYearOptions(account.expiryYear).map((y) => (
@@ -271,14 +271,14 @@ export function AccountItem({
             <button
               type="submit"
               disabled={pending}
-              className="rounded-md bg-blue-600 px-3 py-1.5 text-xs text-white hover:bg-blue-700 disabled:opacity-50"
+              className="rounded-lg bg-primary px-3 py-1.5 text-xs text-white hover:brightness-110 disabled:opacity-50"
             >
               Salvar
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              className="rounded-md border border-black/15 px-3 py-1.5 text-xs dark:border-white/20"
+              className="rounded-lg border px-3 py-1.5 text-xs"
             >
               Cancelar
             </button>
@@ -313,7 +313,7 @@ export function AccountItem({
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="text-xs text-blue-600 hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             Editar
           </button>
@@ -322,7 +322,7 @@ export function AccountItem({
             confirmMessage={`Excluir "${account.name}"? Essa ação não pode ser desfeita.`}
             pending={pending}
             onConfirm={handleDelete}
-            className="text-xs text-red-600 hover:underline"
+            className="text-xs text-destructive hover:underline"
           />
         </div>
       </div>
@@ -330,7 +330,7 @@ export function AccountItem({
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-black/10 px-3 py-2 text-sm dark:border-white/10">
+    <div className="flex items-center gap-2 rounded-xl border px-3 py-2 text-sm">
       <BankBadge bank={account.bank} size={24} />
       <span className="flex-1 font-medium text-foreground" title={account.name}>
         {account.name}
@@ -348,7 +348,7 @@ export function AccountItem({
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="text-xs text-blue-600 hover:underline"
+          className="text-xs text-primary hover:underline"
         >
           Editar
         </button>
@@ -357,7 +357,7 @@ export function AccountItem({
           confirmMessage={`Excluir "${account.name}"? Essa ação não pode ser desfeita.`}
           pending={pending}
           onConfirm={handleDelete}
-          className="text-xs text-red-600 hover:underline"
+          className="text-xs text-destructive hover:underline"
         />
       </div>
     </div>
