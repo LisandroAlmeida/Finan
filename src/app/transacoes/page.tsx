@@ -169,7 +169,7 @@ export default async function TransacoesPage({
         <TransactionsClient
           items={visibleItems}
           categories={categoryList.map((category) => ({ id: category.id, name: category.name, kind: category.kind }))}
-          accounts={accountList.map((account) => ({ id: account.id, name: account.name }))}
+          accounts={accountList.map((account) => ({ id: account.id, name: account.name, type: account.type }))}
           people={people}
           openNewOnLoad={params.novo === "1"}
           actions={{ createExpense, updateExpense, deleteExpense, createIncome, updateIncome, deleteIncome }}
