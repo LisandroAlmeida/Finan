@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte } from "drizzle-orm";
 import { db } from "@/db";
-import { subscriptions, accounts } from "@/db/schema";
+import { subscriptions, accounts, expenses, incomes } from "@/db/schema";
+import { currentMonth, monthLabelLong, shiftMonth } from "@/lib/month";
 import { PageHeader } from "@/components/PageHeader";
 import { formatCurrency } from "@/lib/format";
 import { nextOccurrence } from "@/lib/subscriptionCycle";
@@ -15,15 +16,49 @@ export const dynamic = "force-dynamic";
 // específicas (ex: "Plano Telefone") pra quem quiser classificar melhor.
 const REDUNDANT_CATEGORY = /assinatura/i;
 
-export default async function AssinaturasPage() {
-  const [subscriptionListRaw, categoryListRaw, accountList] = await Promise.all([
+export default async function AssinaturasPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const { month: monthParam } = await searchParams;
+  const month = monthParam ?? currentMonth();
+  const historyStartMonth = shiftMonth(month, -5);
+
+  const [subscriptionListRaw, categoryListRaw, accountList, flaggedExpenseRows, monthIncomeRows] = await Promise.all([
     db.query.subscriptions.findMany({
       where: eq(subscriptions.active, true),
       with: { category: true, account: true },
     }),
     db.query.categories.findMany(),
     db.query.accounts.findMany({ where: eq(accounts.archived, false) }),
+    // Compras marcadas como "Assinatura / recorrente" em Transações (últimos 6 meses).
+    db.query.expenses.findMany({
+      where: and(eq(expenses.isSubscription, true), gte(expenses.month, historyStartMonth), lte(expenses.month, month)),
+      with: { account: true },
+    }),
+    db.query.incomes.findMany({ where: eq(incomes.month, month) }),
   ]);
+
+  const flaggedThisMonth = flaggedExpenseRows.filter((row) => row.month === month);
+  const flaggedMonthTotal = flaggedThisMonth.reduce((sum, row) => sum + Number(row.amount), 0);
+  const monthIncomeTotal = monthIncomeRows.reduce((sum, row) => sum + Number(row.amount), 0);
+  const flaggedShareOfIncome = monthIncomeTotal > 0 ? (flaggedMonthTotal / monthIncomeTotal) * 100 : 0;
+
+  const flaggedTotalByAccountName = new Map<string, number>();
+  for (const row of flaggedThisMonth) {
+    const accountName = row.account?.name ?? "Sem forma de pagamento";
+    flaggedTotalByAccountName.set(accountName, (flaggedTotalByAccountName.get(accountName) ?? 0) + Number(row.amount));
+  }
+
+  const monthHistory = Array.from({ length: 6 }, (_, offset) => {
+    const historyMonth = shiftMonth(month, offset - 5);
+    const total = flaggedExpenseRows
+      .filter((row) => row.month === historyMonth)
+      .reduce((sum, row) => sum + Number(row.amount), 0);
+    return { historyMonth, total };
+  });
+  const highestHistoryTotal = Math.max(...monthHistory.map((entry) => entry.total), 1);
 
   const categoryList = categoryListRaw.filter((c) => c.kind === "despesa" && !REDUNDANT_CATEGORY.test(c.name));
 
@@ -42,8 +77,50 @@ export default async function AssinaturasPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
       <PageHeader title="Assinaturas" subtitle={"Serviços recorrentes da casa"} />
-      <section className="mt-4 rounded-2xl border bg-card p-4 text-center">
-        <h2 className="font-semibold text-muted-foreground">Total mensal equivalente</h2>
+      <section className="mt-4 rounded-2xl border bg-card p-4">
+        <h2 className="font-semibold">Assinaturas nas compras — {monthLabelLong(month)}</h2>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Soma das compras marcadas como <strong>Assinatura / recorrente</strong> em Transações. Elas
+          continuam contando normalmente como despesa; aqui é só o painel.
+        </p>
+        <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div>
+            <p className="text-xs text-muted-foreground">Total no mês</p>
+            <p className="text-2xl font-bold">{formatCurrency(flaggedMonthTotal)}</p>
+            <p className="text-xs text-muted-foreground">{flaggedThisMonth.length} lançamento(s)</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">% da receita do mês</p>
+            <p className="text-2xl font-bold">{flaggedShareOfIncome.toFixed(1).replace(".", ",")}%</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Por forma de pagamento</p>
+            {[...flaggedTotalByAccountName.entries()].map(([accountName, total]) => (
+              <p key={accountName} className="text-sm">
+                {accountName}: <span className="font-medium">{formatCurrency(total)}</span>
+              </p>
+            ))}
+            {flaggedTotalByAccountName.size === 0 && (
+              <p className="text-sm text-muted-foreground">Nada marcado neste mês ainda.</p>
+            )}
+          </div>
+        </div>
+        <div className="mt-4 flex items-end gap-2">
+          {monthHistory.map((entry) => (
+            <div key={entry.historyMonth} className="flex flex-1 flex-col items-center gap-1">
+              <span className="text-[10px] text-muted-foreground">{formatCurrency(entry.total)}</span>
+              <div
+                className="w-full rounded-t bg-primary/70"
+                style={{ height: `${Math.max(4, (entry.total / highestHistoryTotal) * 64)}px` }}
+              />
+              <span className="text-[10px] text-muted-foreground">{entry.historyMonth.slice(5, 7)}/{entry.historyMonth.slice(2, 4)}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-2xl border bg-card p-4 text-center">
+        <h2 className="font-semibold text-muted-foreground">Total mensal equivalente (cadastradas)</h2>
         <p className="mt-1 text-3xl font-bold">{formatCurrency(totalMonthly)}</p>
         <p className="mt-1 text-xs text-muted-foreground">
           Assinaturas anuais entram divididas por 12 nesse total.

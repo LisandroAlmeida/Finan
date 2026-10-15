@@ -29,6 +29,7 @@ export type TransactionItem = {
   accountName: string | null;
   paidBy: string | null;
   essential: boolean;
+  isSubscription: boolean;
   installmentLabel: string;
 };
 
@@ -109,6 +110,7 @@ export function TransactionsClient({
                       item.date ? formatDate(item.date) : null,
                       item.accountName,
                       item.essential ? "essencial" : null,
+                      item.isSubscription ? "assinatura" : null,
                     ]
                       .filter(Boolean)
                       .join(" · ")}
@@ -354,6 +356,15 @@ function TransactionModal({
                 className="h-4 w-4 accent-[var(--primary)]"
               />
               Gasto essencial
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                name="isSubscription"
+                type="checkbox"
+                defaultChecked={editing?.isSubscription}
+                className="h-4 w-4 accent-[var(--primary)]"
+              />
+              Assinatura / recorrente
             </label>
             {!editing && (
               <p className="text-[11px] text-muted-foreground">

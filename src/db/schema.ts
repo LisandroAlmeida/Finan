@@ -135,6 +135,7 @@ export const expenses = pgTable("expenses", {
   date: date("date", { mode: "string" }).notNull(),
   month: date("month", { mode: "string" }).notNull(), // dia 1 do mês de referência (facilita filtro)
   essential: boolean("essential").notNull().default(false),
+  isSubscription: boolean("is_subscription").notNull().default(false),
   paidBy: paidByEnum("paid_by"),
   // parcelamento: todas as parcelas de uma compra compartilham installmentGroupId
   installmentGroupId: uuid("installment_group_id"),
