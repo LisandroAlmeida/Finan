@@ -278,7 +278,7 @@ export default async function DashboardPage({
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card title="Gastos por cartão" subtitle="Cartões adicionais somam no titular">
+        <Card title="Gastos por cartão" subtitle="Compras lançadas em Transações neste mês, por cartão (adicionais somam no titular)">
           <CardSpendingChart data={cardSpendingData} />
         </Card>
 

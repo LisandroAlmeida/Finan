@@ -34,7 +34,7 @@ export type TransactionItem = {
 };
 
 export type CategoryOption = { id: string; name: string; kind: TransactionKind };
-export type AccountOption = { id: string; name: string };
+export type AccountOption = { id: string; name: string; type: "conta" | "cartao" };
 
 type ServerAction = (formData: FormData) => Promise<void>;
 
@@ -296,11 +296,25 @@ function TransactionModal({
             <label className={labelClass}>{isExpense ? "Forma de pagamento" : "Conta"}</label>
             <select name="accountId" defaultValue={editing?.accountId ?? ""} className={inputClass}>
               <option value="">—</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name}
-                </option>
-              ))}
+              {/* Cartão e conta podem ter o mesmo nome (ex: Nubank) — agrupar evita lançar no errado. */}
+              <optgroup label="Cartões">
+                {accounts
+                  .filter((account) => account.type === "cartao")
+                  .map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} (cartão)
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Contas">
+                {accounts
+                  .filter((account) => account.type === "conta")
+                  .map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.name} (conta)
+                    </option>
+                  ))}
+              </optgroup>
             </select>
           </div>
         </div>
