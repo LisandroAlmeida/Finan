@@ -296,25 +296,15 @@ function TransactionModal({
             <label className={labelClass}>{isExpense ? "Forma de pagamento" : "Conta"}</label>
             <select name="accountId" defaultValue={editing?.accountId ?? ""} className={inputClass}>
               <option value="">—</option>
-              {/* Cartão e conta podem ter o mesmo nome (ex: Nubank) — agrupar evita lançar no errado. */}
-              <optgroup label="Cartões">
-                {accounts
-                  .filter((account) => account.type === "cartao")
-                  .map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name} (cartão)
-                    </option>
-                  ))}
-              </optgroup>
-              <optgroup label="Contas">
-                {accounts
-                  .filter((account) => account.type === "conta")
-                  .map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name} (conta)
-                    </option>
-                  ))}
-              </optgroup>
+              {/* Despesa: só cartões (contas como condomínio/IPTU são lançadas em Contas).
+                  Receita: só contas, onde o dinheiro entra. */}
+              {accounts
+                .filter((account) => account.type === (isExpense ? "cartao" : "conta"))
+                .map((account) => (
+                  <option key={account.id} value={account.id}>
+                    {account.name}
+                  </option>
+                ))}
             </select>
           </div>
         </div>
