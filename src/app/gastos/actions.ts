@@ -46,6 +46,7 @@ export async function createExpense(formData: FormData) {
   const totalAmount = Number(formData.get("amount"));
   const date = String(formData.get("date"));
   const essential = formData.get("essential") === "on";
+  const isSubscription = formData.get("isSubscription") === "on";
   const paidBy = parsePaidBy(formData.get("paidBy"));
   const nextInvoice = formData.get("nextInvoice") === "on";
   const installmentTotal = Math.max(1, Number(formData.get("installments") ?? 1));
@@ -63,6 +64,7 @@ export async function createExpense(formData: FormData) {
       date,
       month: resolveMonth(date, nextInvoice),
       essential,
+      isSubscription,
       paidBy,
     });
   } else {
@@ -78,6 +80,7 @@ export async function createExpense(formData: FormData) {
         date: parcelaDate,
         month: resolveMonth(parcelaDate, nextInvoice),
         essential,
+        isSubscription,
         paidBy,
         installmentGroupId: groupId,
         installmentNumber: i + 1,
@@ -100,6 +103,7 @@ export async function updateExpense(formData: FormData) {
   const amount = Number(formData.get("amount"));
   const date = String(formData.get("date"));
   const essential = formData.get("essential") === "on";
+  const isSubscription = formData.get("isSubscription") === "on";
   const paidBy = parsePaidBy(formData.get("paidBy"));
 
   if (!id || !categoryId || !amount || !date) {
@@ -124,6 +128,7 @@ export async function updateExpense(formData: FormData) {
       date,
       month: resolveMonth(date, wasNextInvoice),
       essential,
+      isSubscription,
       paidBy,
     })
     .where(eq(expenses.id, id));

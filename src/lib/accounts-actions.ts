@@ -23,6 +23,7 @@ function parsePaymentMethod(formData: FormData): "boleto" | "pix" | null {
 
 function revalidateForType(type: "conta" | "cartao") {
   revalidatePath(type === "cartao" ? "/cartoes" : "/contas");
+  revalidatePath("/configuracoes");
   revalidatePath("/");
 }
 
@@ -110,6 +111,7 @@ export async function deleteAccount(id: string) {
   await db.delete(accounts).where(eq(accounts.id, id));
   revalidatePath("/contas");
   revalidatePath("/cartoes");
+  revalidatePath("/configuracoes");
   revalidatePath("/");
 }
 
@@ -184,5 +186,6 @@ export async function deleteBill(id: string) {
   await db.delete(bills).where(eq(bills.id, id));
   revalidatePath("/contas");
   revalidatePath("/cartoes");
+  revalidatePath("/configuracoes");
   revalidatePath("/");
 }

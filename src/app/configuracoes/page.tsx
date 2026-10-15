@@ -1,5 +1,10 @@
 import { Download, LogOut } from "lucide-react";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
+import { accounts } from "@/db/schema";
+import { AccountItem } from "@/components/AccountItem";
+import { BANK_OPTIONS } from "@/lib/banks";
+import { createAccount, updateAccount, deleteAccount } from "@/lib/accounts-actions";
 import { Card } from "@/components/Card";
 import { PageHeader } from "@/components/PageHeader";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -16,9 +21,10 @@ export const dynamic = "force-dynamic";
 const DEFAULT_CATEGORY_COLOR = "#3B82F6";
 
 export default async function ConfiguracoesPage() {
-  const [people, categoryList] = await Promise.all([
+  const [people, categoryList, contaList] = await Promise.all([
     getPeople(),
     db.query.categories.findMany({ orderBy: (table, { asc }) => asc(table.name) }),
+    db.query.accounts.findMany({ where: and(eq(accounts.archived, false), eq(accounts.type, "conta")) }),
   ]);
 
   return (
@@ -95,6 +101,71 @@ export default async function ConfiguracoesPage() {
           </Card>
         ))}
       </div>
+      <section className="mt-4 rounded-2xl border bg-card p-4">
+        <h2 className="mb-3 font-semibold">Contas cadastradas</h2>
+
+        {contaList.length > 0 && (
+          <div className="mb-4 flex flex-col gap-2">
+            {contaList.map((a) => (
+              <AccountItem key={a.id} account={a} updateAccount={updateAccount} deleteAccount={deleteAccount} />
+            ))}
+          </div>
+        )}
+
+        {contaList.length === 0 && (
+          <p className="mb-4 text-muted-foreground">Nenhuma conta cadastrada ainda.</p>
+        )}
+
+        <form action={createAccount} className="flex flex-wrap items-end gap-3">
+          <input type="hidden" name="type" value="conta" />
+          <div className="flex flex-col">
+            <label className="text-xs text-muted-foreground">Nome</label>
+            <input
+              name="name"
+              required
+              placeholder="Ex: Internet Mãe"
+              className="rounded-lg border px-2 py-1.5"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-muted-foreground">Banco</label>
+            <select
+              name="bank"
+              className="rounded-lg border px-2 py-1.5"
+            >
+              {BANK_OPTIONS.map((b) => (
+                <option key={b.value} value={b.value}>
+                  {b.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-muted-foreground">Dia vencimento</label>
+            <input
+              name="dueDay"
+              type="number"
+              min="1"
+              max="31"
+              className="w-24 rounded-lg border px-2 py-1.5"
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-xs text-muted-foreground">Forma de pagamento</label>
+            <select
+              name="paymentMethod"
+              defaultValue="boleto"
+              className="rounded-lg border px-2 py-1.5"
+            >
+              <option value="boleto">Boleto</option>
+              <option value="pix">Pix</option>
+            </select>
+          </div>
+          <button className="rounded-lg bg-primary px-4 py-1.5 text-white hover:brightness-110">
+            Cadastrar
+          </button>
+        </form>
+      </section>
     </main>
   );
 }

@@ -52,6 +52,7 @@ export default async function TransacoesPage({
       accountName: row.account?.name ?? null,
       paidBy: row.paidBy,
       essential: row.essential,
+      isSubscription: row.isSubscription,
       installmentLabel:
         row.installmentTotal && row.installmentNumber
           ? ` (${row.installmentNumber}/${row.installmentTotal})`
@@ -70,6 +71,7 @@ export default async function TransacoesPage({
       accountName: row.account?.name ?? null,
       paidBy: row.paidBy,
       essential: false,
+      isSubscription: false,
       installmentLabel: "",
     })),
   ];
