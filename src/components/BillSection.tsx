@@ -19,20 +19,26 @@ export function BillSection({
   redirectPath,
   accountsWithoutBill,
   billList,
+  title,
+  includeViewOnlyInTotal = false,
 }: {
+  title: string;
+  // Em Cartões o total é só informativo: soma tudo que está na tabela, inclusive
+  // faturas "só visualização". Em Contas, "só visualização" fica fora do total.
+  includeViewOnlyInTotal?: boolean;
   month: string;
   redirectPath: string;
   accountsWithoutBill: AccountOption[];
   billList: Bill[];
 }) {
-  // Faturas "só visualização" aparecem na lista, mas não entram nos totais.
-  const countedBills = billList.filter((b) => !b.informational);
+  // Faturas "só visualização" aparecem na lista, mas (salvo em Cartões) não entram nos totais.
+  const countedBills = includeViewOnlyInTotal ? billList : billList.filter((b) => !b.informational);
   const totalPlanned = countedBills.reduce((s, b) => s + Number(b.plannedAmount), 0);
   const totalActual = countedBills.reduce((s, b) => s + Number(b.actualAmount ?? 0), 0);
 
   return (
     <section className="mt-6 rounded-2xl border bg-card p-4">
-      <h2 className="mb-3 font-semibold">Fatura do mês</h2>
+      <h2 className="mb-3 font-semibold">{title}</h2>
 
       {accountsWithoutBill.length > 0 && (
         <form action={upsertBill} className="mb-4 flex flex-wrap items-end gap-3">

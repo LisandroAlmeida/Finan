@@ -45,7 +45,16 @@ export default async function CartoesPage({
     <main className="mx-auto max-w-6xl px-4 py-6">
       <PageHeader title="Cartões" subtitle={`${monthLabelLong(month)} · faturas, parcelas e cartões adicionais`} />
 
-      <section className="mt-4 rounded-2xl border bg-card p-4">
+      <BillSection
+        month={month}
+        title="Faturas dos cartões"
+        includeViewOnlyInTotal
+        redirectPath="/cartoes"
+        accountsWithoutBill={accountsWithoutBill}
+        billList={cardBills}
+      />
+
+      <section className="mt-6 rounded-2xl border bg-card p-4">
         <h2 className="mb-3 font-semibold">Cartões cadastrados</h2>
 
         {accountList.length > 0 && (
@@ -170,12 +179,6 @@ export default async function CartoesPage({
         </p>
       </section>
 
-      <BillSection
-        month={month}
-        redirectPath="/cartoes"
-        accountsWithoutBill={accountsWithoutBill}
-        billList={cardBills}
-      />
     </main>
   );
 }

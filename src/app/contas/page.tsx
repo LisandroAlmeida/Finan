@@ -34,7 +34,15 @@ export default async function ContasPage({
     <main className="mx-auto max-w-6xl px-4 py-6">
       <PageHeader title="Contas" subtitle={`${monthLabelLong(month)} · contas fixas e a pagar`} />
 
-      <section className="mt-4 rounded-2xl border bg-card p-4">
+      <BillSection
+        month={month}
+        title="Contas a pagar do mês"
+        redirectPath="/contas"
+        accountsWithoutBill={accountsWithoutBill}
+        billList={contaBills}
+      />
+
+      <section className="mt-6 rounded-2xl border bg-card p-4">
         <h2 className="mb-3 font-semibold">Contas cadastradas</h2>
 
         {accountList.length > 0 && (
@@ -99,13 +107,6 @@ export default async function ContasPage({
           </button>
         </form>
       </section>
-
-      <BillSection
-        month={month}
-        redirectPath="/contas"
-        accountsWithoutBill={accountsWithoutBill}
-        billList={contaBills}
-      />
     </main>
   );
 }
