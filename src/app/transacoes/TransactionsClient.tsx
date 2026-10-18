@@ -199,6 +199,11 @@ function TransactionModal({
   const today = new Date().toISOString().slice(0, 10);
   const isExpense = kind === "despesa";
   const kindCategories = categories.filter((category) => category.kind === kind);
+  const selectableAccounts = accounts.filter((account) => account.type === (isExpense ? "cartao" : "conta"));
+  const legacyAccount =
+    editing?.accountId && !selectableAccounts.some((account) => account.id === editing.accountId)
+      ? accounts.find((account) => account.id === editing.accountId) ?? null
+      : null;
 
   function submit(formData: FormData) {
     const action = editing
@@ -296,11 +301,16 @@ function TransactionModal({
             <label className={labelClass}>{isExpense ? "Forma de pagamento" : "Conta"}</label>
             <select name="accountId" defaultValue={editing?.accountId ?? ""} className={inputClass}>
               <option value="">—</option>
+              {/* Lançamento antigo ligado a um tipo que não aparece mais aqui (ex: despesa em
+                  "Bradesco (conta)"): mantém a opção atual para a edição não trocar o valor. */}
+              {legacyAccount && (
+                <option value={legacyAccount.id}>
+                  {legacyAccount.name} ({legacyAccount.type === "cartao" ? "cartão" : "conta"})
+                </option>
+              )}
               {/* Despesa: só cartões (contas como condomínio/IPTU são lançadas em Contas).
                   Receita: só contas, onde o dinheiro entra. */}
-              {accounts
-                .filter((account) => account.type === (isExpense ? "cartao" : "conta"))
-                .map((account) => (
+              {selectableAccounts.map((account) => (
                   <option key={account.id} value={account.id}>
                     {account.name}
                   </option>
