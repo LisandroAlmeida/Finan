@@ -276,6 +276,8 @@ export const uberFixedExpenses = pgTable("uber_fixed_expenses", {
   maintenanceSystem: text("maintenance_system"),
   // Só manutenção: Pix ou cartão (C6, Amazon, Mercado Pago).
   paymentMethod: text("payment_method"),
+  // Só custos fixos: meses ("AAAA-MM") excluídos só naquele mês.
+  excludedMonths: text("excluded_months").array(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
