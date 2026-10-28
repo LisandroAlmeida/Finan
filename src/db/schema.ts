@@ -388,3 +388,24 @@ export const reservesRelations = relations(reserves, ({ one }) => ({
     references: [savingsGoals.id],
   }),
 }));
+
+// Espelho do uber-app (serviços por km e notificações) — só pro `drizzle-kit push`
+// deste app não apagar as tabelas.
+export const uberVehicleServices = pgTable("uber_vehicle_services", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  serviceName: text("service_name").notNull(),
+  serviceDate: date("service_date", { mode: "string" }).notNull(),
+  odometerKm: integer("odometer_km").notNull(),
+  intervalKm: integer("interval_km").notNull(),
+  notes: text("notes"),
+  notifiedStage: text("notified_stage"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const uberPushSubscriptions = pgTable("uber_push_subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  endpoint: text("endpoint").notNull().unique(),
+  p256dhKey: text("p256dh_key").notNull(),
+  authKey: text("auth_key").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
