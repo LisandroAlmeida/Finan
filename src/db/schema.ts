@@ -136,6 +136,8 @@ export const expenses = pgTable("expenses", {
   month: date("month", { mode: "string" }).notNull(), // dia 1 do mês de referência (facilita filtro)
   essential: boolean("essential").notNull().default(false),
   isSubscription: boolean("is_subscription").notNull().default(false),
+  // Compra continua no cartão e em Transações, mas não entra no gráfico "Gastos por cartão".
+  hideInCardChart: boolean("hide_in_card_chart").notNull().default(false),
   paidBy: paidByEnum("paid_by"),
   // parcelamento: todas as parcelas de uma compra compartilham installmentGroupId
   installmentGroupId: uuid("installment_group_id"),

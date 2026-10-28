@@ -93,7 +93,7 @@ export default async function DashboardPage({
   const cardAccountsById = new Map(cardAccounts.map((account) => [account.id, account]));
   const cardSpendingTotals = new Map<string, { name: string; bank: string; value: number }>();
   for (const expense of monthExpenses) {
-    if (expense.account?.type !== "cartao" || !expense.accountId) continue;
+    if (expense.account?.type !== "cartao" || !expense.accountId || expense.hideInCardChart) continue;
     const account = cardAccountsById.get(expense.accountId);
     if (!account) continue;
     const topLevel = account.parentAccountId ? cardAccountsById.get(account.parentAccountId) : account;
