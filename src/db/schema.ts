@@ -399,6 +399,8 @@ export const uberVehicleServices = pgTable("uber_vehicle_services", {
   intervalKm: integer("interval_km").notNull(),
   notes: text("notes"),
   notifiedStage: text("notified_stage"),
+  // Se o serviço deve mandar notificação no celular (a marca na tela sempre aparece).
+  notifyEnabled: boolean("notify_enabled").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
