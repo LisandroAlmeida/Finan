@@ -1,5 +1,6 @@
 "use client";
 
+import { todayInSaoPaulo } from "@/lib/today";
 import { useState, useTransition } from "react";
 import { ArrowDownRight, ArrowUpRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { Modal } from "@/components/Modal";
@@ -196,7 +197,7 @@ function TransactionModal({
 }) {
   const [kind, setKind] = useState<TransactionKind>(editing?.kind ?? "despesa");
   const [isPending, startTransition] = useTransition();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInSaoPaulo();
   const isExpense = kind === "despesa";
   const kindCategories = categories.filter((category) => category.kind === kind);
   const selectableAccounts = accounts.filter((account) => account.type === (isExpense ? "cartao" : "conta"));

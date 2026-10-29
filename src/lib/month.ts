@@ -1,3 +1,5 @@
+import { todayInSaoPaulo } from "@/lib/today";
+
 const MESES = [
   "Janeiro",
   "Fevereiro",
@@ -15,8 +17,7 @@ const MESES = [
 
 /** Retorna o mês atual no formato "YYYY-MM-01" (sempre dia 1). */
 export function currentMonth(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  return todayInSaoPaulo().slice(0, 7) + "-01";
 }
 
 /** "2026-08-01" -> "Agosto 2026" */

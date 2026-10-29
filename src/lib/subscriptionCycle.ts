@@ -1,3 +1,5 @@
+import { todayInSaoPaulo } from "@/lib/today";
+
 /**
  * Calcula a próxima data de cobrança de uma assinatura "rolando" a data
  * âncora salva no banco pra frente até cair no futuro (ou hoje), sem
@@ -9,12 +11,13 @@
 export function nextOccurrence(
   anchorDate: string,
   cycle: "mensal" | "anual",
-  today: Date = new Date(),
+  todayDate: string = todayInSaoPaulo(),
 ): string {
   const [y, m, d] = anchorDate.split("-").map(Number);
   let date = new Date(y, m - 1, d);
   const step = cycle === "anual" ? 12 : 1;
-  const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const [todayYear, todayMonth, todayDay] = todayDate.split("-").map(Number);
+  const todayMidnight = new Date(todayYear, todayMonth - 1, todayDay);
 
   // Evita loop infinito se a data âncora vier inválida por algum motivo.
   let guard = 0;
