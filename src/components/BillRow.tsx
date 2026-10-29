@@ -1,5 +1,6 @@
 "use client";
 
+import { todayInSaoPaulo } from "@/lib/today";
 import { useState, useTransition } from "react";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { BankBadge } from "@/components/BankBadge";
@@ -147,7 +148,7 @@ export function BillRow({
               {/* Usa o valor planejado e a data de hoje como padrão — pra um valor
                   ou data diferente, "editar" cobre o mesmo caso com mais controle. */}
               <input type="hidden" name="actualAmount" value={bill.plannedAmount} />
-              <input type="hidden" name="paidAt" value={new Date().toISOString().slice(0, 10)} />
+              <input type="hidden" name="paidAt" value={todayInSaoPaulo()} />
               <button className="text-xs text-primary hover:underline">marcar pago</button>
             </form>
           )}

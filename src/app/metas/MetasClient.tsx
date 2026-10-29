@@ -1,5 +1,6 @@
 "use client";
 
+import { todayInSaoPaulo } from "@/lib/today";
 import { useState, useTransition } from "react";
 import { Pencil, PiggyBank, Plus, Trash2 } from "lucide-react";
 import { Modal } from "@/components/Modal";
@@ -312,7 +313,7 @@ function ContributionModal({
   onClose: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayInSaoPaulo();
 
   return (
     <Modal title={contribution ? "Editar aporte" : "Registrar aporte"} onClose={onClose}>
