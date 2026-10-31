@@ -401,6 +401,11 @@ export const uberVehicleServices = pgTable("uber_vehicle_services", {
   notifiedStage: text("notified_stage"),
   // Se o serviço deve mandar notificação no celular (a marca na tela sempre aparece).
   notifyEnabled: boolean("notify_enabled").notNull().default(true),
+  // Manutenção que gerou este lembrete (cadastro "Periódico" em Manutenção); ao
+  // excluir a manutenção, o lembrete some junto. Null = serviço lançado direto.
+  fixedExpenseId: uuid("fixed_expense_id").references(() => uberFixedExpenses.id, {
+    onDelete: "cascade",
+  }),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
