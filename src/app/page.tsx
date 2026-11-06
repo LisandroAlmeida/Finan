@@ -121,6 +121,16 @@ export default async function DashboardPage({
   }
   const categoryData = Array.from(categoryTotals.values()).sort((a, b) => b.value - a.value);
 
+  // Box "Gastos lançados no mês": tudo que foi marcado em Nova Transação neste mês,
+  // separado entre compras no cartão (viram fatura do mês seguinte) e o resto.
+  const launchedTotal = monthExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const launchedOnCards = monthExpenses
+    .filter((expense) => expense.account?.type === "cartao")
+    .reduce((sum, expense) => sum + Number(expense.amount), 0);
+  const launchedOutsideCards = launchedTotal - launchedOnCards;
+  const monthBudgetLimit = budgetRows.reduce((sum, budget) => sum + Number(budget.amount), 0);
+  const monthBudgetRatio = monthBudgetLimit > 0 ? launchedTotal / monthBudgetLimit : 0;
+
   const accountsFlowData = monthBills.map((bill) => ({
     name: bill.account!.name,
     planejado: Number(bill.plannedAmount),
@@ -196,6 +206,57 @@ export default async function DashboardPage({
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <Card title="Gastos por cartão" subtitle="Compras lançadas em Transações neste mês, por cartão (adicionais somam no titular)">
+          <CardSpendingChart data={cardSpendingData} />
+        </Card>
+
+        <Card title="Gastos lançados no mês" subtitle="O que vocês marcaram em Nova Transação">
+          <p className="num text-3xl font-semibold">{formatCurrency(launchedTotal)}</p>
+          <dl className="mt-4 space-y-2 text-sm">
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">No cartão (fatura do mês seguinte)</dt>
+              <dd className="num font-medium">{formatCurrency(launchedOnCards)}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">Fora do cartão (pix, débito, conta)</dt>
+              <dd className="num font-medium">{formatCurrency(launchedOutsideCards)}</dd>
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <dt className="text-muted-foreground">Lançamentos</dt>
+              <dd className="num font-medium">{monthExpenses.length}</dd>
+            </div>
+          </dl>
+          {monthBudgetLimit > 0 ? (
+            <div className="mt-5">
+              <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+                <span>Orçamento do mês</span>
+                <span className="num">
+                  {formatCurrency(launchedTotal)} / {formatCurrency(monthBudgetLimit)}
+                </span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                <div
+                  className="h-full rounded-full"
+                  style={{ width: `${Math.min(monthBudgetRatio, 1) * 100}%`, backgroundColor: budgetBarColor(monthBudgetRatio) }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {monthBudgetRatio <= 1
+                  ? `Ainda cabem ${formatCurrency(monthBudgetLimit - launchedTotal)} no limite.`
+                  : `${formatCurrency(launchedTotal - monthBudgetLimit)} acima do limite.`}
+              </p>
+            </div>
+          ) : (
+            <p className="mt-5 text-xs text-muted-foreground">Defina limites em Orçamentos para acompanhar aqui.</p>
+          )}
+        </Card>
+
+        <Card title="Despesas por categoria" subtitle="Onde o mês foi embora">
+          <CategoryAllocationChart data={categoryData} />
+        </Card>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card
           title="Receitas × Despesas"
           subtitle={`Evolução dos últimos ${MONTHS_IN_CHART} meses`}
@@ -204,8 +265,20 @@ export default async function DashboardPage({
           <IncomeExpenseChart data={monthlySeries} />
         </Card>
 
-        <Card title="Despesas por categoria" subtitle="Onde o mês foi embora">
-          <CategoryAllocationChart data={categoryData} />
+        <Card
+          title="Metas & Sonhos"
+          subtitle="O que vocês estão construindo"
+          action={{ href: "/metas", label: "Ver metas" }}
+        >
+          {goalCards.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma meta criada ainda.</p>
+          ) : (
+            <div className="space-y-5">
+              {goalCards.map(({ id, ...goalProps }) => (
+                <GoalCard key={id} {...goalProps} />
+              ))}
+            </div>
+          )}
         </Card>
       </div>
 
@@ -260,29 +333,7 @@ export default async function DashboardPage({
           )}
         </Card>
 
-        <Card
-          title="Metas & Sonhos"
-          subtitle="O que vocês estão construindo"
-          action={{ href: "/metas", label: "Ver metas" }}
-        >
-          {goalCards.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">Nenhuma meta criada ainda.</p>
-          ) : (
-            <div className="space-y-5">
-              {goalCards.map(({ id, ...goalProps }) => (
-                <GoalCard key={id} {...goalProps} />
-              ))}
-            </div>
-          )}
-        </Card>
-      </div>
-
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card title="Gastos por cartão" subtitle="Compras lançadas em Transações neste mês, por cartão (adicionais somam no titular)">
-          <CardSpendingChart data={cardSpendingData} />
-        </Card>
-
-        <Card title="Fluxo de contas" subtitle="Faturas e contas: planejado × real" className="lg:col-span-2">
+        <Card title="Fluxo de contas" subtitle="Faturas e contas: planejado × real">
           <AccountsFlowChart data={accountsFlowData} />
         </Card>
       </div>
