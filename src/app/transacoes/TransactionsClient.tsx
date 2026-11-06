@@ -1,7 +1,8 @@
 "use client";
 
 import { todayInSaoPaulo } from "@/lib/today";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { ArrowDownRight, ArrowUpRight, Pencil, Plus, Trash2 } from "lucide-react";
 import { Modal } from "@/components/Modal";
 import {
@@ -65,6 +66,26 @@ export function TransactionsClient({
     { mode: "new" } | { mode: "edit"; item: TransactionItem } | null
   >(openNewOnLoad ? { mode: "new" } : null);
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // O botão "Nova Transação" do cabeçalho navega para /transacoes?novo=1. Estando já nessa
+  // tela, o componente não remonta, então o estado inicial não basta: reabre o modal sempre
+  // que o parâmetro aparecer.
+  useEffect(() => {
+    if (openNewOnLoad) setFormState({ mode: "new" });
+  }, [openNewOnLoad]);
+
+  function closeForm() {
+    setFormState(null);
+    // Remove ?novo=1 da URL para que o próximo clique no botão volte a abrir o modal.
+    const currentParams = new URLSearchParams(window.location.search);
+    if (currentParams.has("novo")) {
+      currentParams.delete("novo");
+      const remainingQuery = currentParams.toString();
+      router.replace(remainingQuery ? `${pathname}?${remainingQuery}` : pathname);
+    }
+  }
 
   function deleteItem(item: TransactionItem) {
     if (!window.confirm(`Excluir "${item.description}"?`)) return;
@@ -168,7 +189,7 @@ export function TransactionsClient({
           accounts={accounts}
           people={people}
           actions={actions}
-          onClose={() => setFormState(null)}
+          onClose={closeForm}
         />
       )}
     </>
