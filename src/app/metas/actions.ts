@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { reserves, savingsGoals } from "@/db/schema";
+import { categories, incomes, reserves, savingsGoals } from "@/db/schema";
+import { toMonth } from "@/lib/month";
 
 function revalidateGoalPages() {
   revalidatePath("/metas");
@@ -37,28 +38,55 @@ export async function deleteGoal(id: string) {
   revalidateGoalPages();
 }
 
+/**
+ * Registra aporte (valor positivo) ou saque (valor negativo) numa meta.
+ * No saque, "alsoRecordAsIncome" também lança o dinheiro como receita do mês
+ * (categoria "Outras receitas"), porque ele vai pagar uma despesa que já está
+ * lançada — sem isso a sobra do mês fica falsamente negativa.
+ */
 export async function saveContribution(formData: FormData) {
   const id = emptyToNull(formData.get("id"));
   const goalId = emptyToNull(formData.get("goalId"));
-  const amount = Number(formData.get("amount"));
+  const enteredAmount = Math.abs(Number(formData.get("amount")));
+  const isWithdrawal = String(formData.get("kind") ?? "aporte") === "saque";
+  const alsoRecordAsIncome = isWithdrawal && formData.get("alsoRecordAsIncome") === "on";
   const date = String(formData.get("date") ?? "");
   const note = String(formData.get("name") ?? "").trim();
 
-  if (!amount || !date) throw new Error("Valor e data são obrigatórios.");
+  if (!enteredAmount || !date) throw new Error("Valor e data são obrigatórios.");
 
   const goal = goalId
     ? await db.query.savingsGoals.findFirst({ where: eq(savingsGoals.id, goalId) })
     : null;
+  const goalLabel = goal?.name ?? "Sem meta";
+  const signedAmount = isWithdrawal ? -enteredAmount : enteredAmount;
+  const defaultNote = isWithdrawal
+    ? goal ? `Saque — ${goal.name}` : "Saque"
+    : goal ? `Aporte — ${goal.name}` : "Aporte";
 
   const values = {
-    name: note || (goal ? `Aporte — ${goal.name}` : "Aporte"),
-    type: goal?.name ?? "Sem meta",
-    amount: amount.toFixed(2),
+    name: note || defaultNote,
+    type: goalLabel,
+    amount: signedAmount.toFixed(2),
     date,
     goalId: goal?.id ?? null,
   };
   if (id) await db.update(reserves).set(values).where(eq(reserves.id, id));
   else await db.insert(reserves).values(values);
+
+  if (alsoRecordAsIncome) {
+    const otherIncomeCategory = await db.query.categories.findFirst({
+      where: eq(categories.name, "Outras receitas"),
+    });
+    await db.insert(incomes).values({
+      description: note || `Saque reserva — ${goalLabel}`,
+      amount: enteredAmount.toFixed(2),
+      date,
+      month: toMonth(date),
+      categoryId: otherIncomeCategory?.id ?? null,
+    });
+    revalidatePath("/transacoes");
+  }
 
   revalidateGoalPages();
 }

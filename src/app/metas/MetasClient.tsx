@@ -73,7 +73,7 @@ export function MetasClient({
           onClick={() => setDialog({ type: "contribution", contribution: null, goalId: null })}
           className={ghostButtonClass}
         >
-          <PiggyBank size={16} /> Registrar aporte
+          <PiggyBank size={16} /> Aporte ou saque
         </button>
         <button type="button" onClick={() => setDialog({ type: "goal", goal: null })} className={primaryButtonClass}>
           <Plus size={16} /> Nova meta
@@ -161,8 +161,8 @@ export function MetasClient({
 
       <section className="mt-4 rounded-2xl border bg-card p-5">
         <header className="mb-4">
-          <h2 className="text-[15px] font-semibold leading-tight">Histórico de aportes</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">Tudo que já foi guardado, do mais recente ao mais antigo</p>
+          <h2 className="text-[15px] font-semibold leading-tight">Histórico de aportes e saques</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">Tudo que entrou e saiu das reservas, do mais recente ao mais antigo</p>
         </header>
         {contributions.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted-foreground">Nenhum aporte registrado.</p>
@@ -182,8 +182,11 @@ export function MetasClient({
                     {contribution.goalName} · {formatDate(contribution.date)}
                   </p>
                 </div>
-                <span className="num shrink-0 text-sm font-semibold text-emerald-500">
-                  +{formatCurrency(contribution.amount)}
+                <span
+                  className={`num shrink-0 text-sm font-semibold ${contribution.amount < 0 ? "text-rose-500" : "text-emerald-500"}`}
+                >
+                  {contribution.amount < 0 ? "−" : "+"}
+                  {formatCurrency(Math.abs(contribution.amount))}
                 </span>
                 <button
                   type="button"
@@ -314,9 +317,12 @@ function ContributionModal({
 }) {
   const [isPending, startTransition] = useTransition();
   const today = todayInSaoPaulo();
+  const [kind, setKind] = useState<"aporte" | "saque">(
+    contribution && contribution.amount < 0 ? "saque" : "aporte",
+  );
 
   return (
-    <Modal title={contribution ? "Editar aporte" : "Registrar aporte"} onClose={onClose}>
+    <Modal title={contribution ? "Editar movimentação" : "Aporte ou saque"} onClose={onClose}>
       <form
         action={(formData) =>
           startTransition(async () => {
@@ -327,6 +333,18 @@ function ContributionModal({
         className="space-y-4"
       >
         {contribution && <input type="hidden" name="id" value={contribution.id} />}
+        <div>
+          <label className={labelClass}>Tipo</label>
+          <select
+            name="kind"
+            value={kind}
+            onChange={(event) => setKind(event.target.value as "aporte" | "saque")}
+            className={inputClass}
+          >
+            <option value="aporte">Aporte (guardar)</option>
+            <option value="saque">Saque (retirar da reserva)</option>
+          </select>
+        </div>
         <div>
           <label className={labelClass}>Meta</label>
           <select name="goalId" defaultValue={initialGoalId ?? ""} className={inputClass}>
@@ -347,7 +365,7 @@ function ContributionModal({
               step="0.01"
               min="0"
               required
-              defaultValue={contribution?.amount}
+              defaultValue={contribution ? Math.abs(contribution.amount) : undefined}
               className={`${inputClass} num`}
             />
           </div>
@@ -358,8 +376,24 @@ function ContributionModal({
         </div>
         <div>
           <label className={labelClass}>Observação (opcional)</label>
-          <input name="name" defaultValue={contribution?.note} placeholder="Ex.: 13º salário" className={inputClass} />
+          <input
+            name="name"
+            defaultValue={contribution?.note}
+            placeholder={kind === "saque" ? "Ex.: pagamento do apto" : "Ex.: 13º salário"}
+            className={inputClass}
+          />
         </div>
+        {kind === "saque" && !contribution && (
+          <label className="flex items-start gap-2 text-sm">
+            <input name="alsoRecordAsIncome" type="checkbox" defaultChecked className="mt-1" />
+            <span>
+              Lançar também como receita do mês
+              <span className="block text-xs text-muted-foreground">
+                Use quando o dinheiro vai pagar uma despesa já lançada, para a sobra do mês não ficar negativa.
+              </span>
+            </span>
+          </label>
+        )}
         <div className="flex justify-end gap-2 pt-1">
           <button type="button" onClick={onClose} className={ghostButtonClass}>
             Cancelar
