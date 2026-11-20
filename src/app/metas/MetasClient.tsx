@@ -4,6 +4,7 @@ import { todayInSaoPaulo } from "@/lib/today";
 import { useState, useTransition } from "react";
 import { Pencil, PiggyBank, Plus, Trash2 } from "lucide-react";
 import { Modal } from "@/components/Modal";
+import { PageHeader } from "@/components/PageHeader";
 import {
   ghostButtonClass,
   iconButtonClass,
@@ -45,10 +46,17 @@ type DialogState =
   | null;
 
 export function MetasClient({
+  title,
+  subtitle,
+  children,
   goals,
   contributions,
   actions,
 }: {
+  title: string;
+  subtitle: string;
+  /** Renderizado entre o cabeçalho e a lista de metas (cards de resumo). */
+  children?: React.ReactNode;
   goals: GoalItem[];
   contributions: ContributionItem[];
   actions: {
@@ -67,18 +75,26 @@ export function MetasClient({
 
   return (
     <>
-      <div className="mb-4 flex flex-wrap justify-end gap-2">
-        <button
-          type="button"
-          onClick={() => setDialog({ type: "contribution", contribution: null, goalId: null })}
-          className={ghostButtonClass}
-        >
-          <PiggyBank size={16} /> Aporte ou saque
-        </button>
-        <button type="button" onClick={() => setDialog({ type: "goal", goal: null })} className={primaryButtonClass}>
-          <Plus size={16} /> Nova meta
-        </button>
-      </div>
+      <PageHeader
+        title={title}
+        subtitle={subtitle}
+        action={
+          <div className="flex flex-wrap justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => setDialog({ type: "contribution", contribution: null, goalId: null })}
+              className={ghostButtonClass}
+            >
+              <PiggyBank size={16} /> Aporte ou saque
+            </button>
+            <button type="button" onClick={() => setDialog({ type: "goal", goal: null })} className={primaryButtonClass}>
+              <Plus size={16} /> Nova meta
+            </button>
+          </div>
+        }
+      />
+
+      {children}
 
       {goals.length === 0 ? (
         <p className="rounded-2xl border bg-card py-10 text-center text-sm text-muted-foreground">
